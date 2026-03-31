@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Neptuwunium <ada@chronovore.dev>
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+[submodule "Libraries/Neptune"]
+	path = Libraries/Neptune
+	url = https://github.com/neptuwunium/Neptune.git
+[submodule "Libraries/BCDecNet"]
+	path = Libraries/BCDecNet
+	url = https://github.com/neptuwunium/BCDecNet.git
