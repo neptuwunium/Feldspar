@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2026 Neptuwunium <ada@chronovore.dev>
 SPDX-License-Identifier: EUPL-1.2
 -->
 
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -12,5 +12,9 @@ SPDX-License-Identifier: EUPL-1.2
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Feldspar\Feldspar.csproj" />
+  </ItemGroup>
 
 </Project>

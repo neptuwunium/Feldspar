@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Neptuwunium <ada@chronovore.dev>
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+# Default ignored files
+/shelf/
+/workspace.xml
+# Rider ignored files
+/modules.xml
+/contentModel.xml
+/.idea.Feldspar.iml
+/projectSettingsUpdater.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Ignored default folder with query files
+/queries/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml

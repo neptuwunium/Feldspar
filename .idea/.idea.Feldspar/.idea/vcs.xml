@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+SPDX-FileCopyrightText: 2026 Neptuwunium <ada@chronovore.dev>
+
+SPDX-License-Identifier: EUPL-1.2
+-->
+
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/BCDecNet" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/Neptune" vcs="Git" />
+  </component>
+</project>
