@@ -6,6 +6,7 @@ SPDX-License-Identifier: EUPL-1.2
 
 <Solution>
   <Folder Name="/Libraries/">
+    <Project Path="Libraries/Neptune/Pluto.SourceGen/Pluto.SourceGen.csproj" />
     <Project Path="Libraries/Neptune/Pluto/Pluto.csproj" />
     <Project Path="Libraries/Neptune/Charon/Charon.csproj" />
     <Project Path="Libraries/Neptune/Ceres/Ceres.csproj" />

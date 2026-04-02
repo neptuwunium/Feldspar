@@ -9,7 +9,7 @@ using Feldspar.Security;
 using Pluto.Extensions;
 using Pluto.IO.Binary;
 
-namespace Feldspar.FileTable.Decade;
+namespace Feldspar.Package.Decade;
 
 public class DecadeTable {
 	public DecadeTable(string dataDir, RentedArray<byte> data, bool leaveOpen = false) {
@@ -38,26 +38,18 @@ public class DecadeTable {
 	public string DataDir { get; }
 
 	public RentedArray<byte> OpenFile(string path) {
-		if (!Files.TryGetValue(path, out var lookup)) {
-			return RentedArray<byte>.Empty;
-		}
+		if (!Files.TryGetValue(path, out var lookup)) return RentedArray<byte>.Empty;
 
 		var blockPath = Path.Combine(DataDir, lookup.BlockName);
-		if (!File.Exists(blockPath)) {
-			return RentedArray<byte>.Empty;
-		}
+		if (!File.Exists(blockPath)) return RentedArray<byte>.Empty;
 
 		var block = RentedArray<byte>.FromFile(blockPath);
 		try {
-			if ((lookup.Info.Flags & DecadeFlags.Encrypted) != 0) {
-				DecadeCipher.Crypt(block.Span, lookup.Info.Size, DecadeKeyRing.Decade);
-			}
-		
+			if ((lookup.Info.Flags & DecadeFlags.Encrypted) != 0) DecadeCipher.Crypt(block.Span, lookup.Info.Size, DecadeKeyRing.Decade);
+
 			File.WriteAllBytes("test.bin", block.Span);
 
-			if ((lookup.Info.Flags & DecadeFlags.Compressed) == 0) {
-				return block;
-			}
+			if ((lookup.Info.Flags & DecadeFlags.Compressed) == 0) return block;
 
 			try {
 				return BlockCompression.Decompress(block, lookup.Info.Size);

@@ -4,7 +4,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace Feldspar.FileTable.Decade;
+namespace Feldspar.Package.Decade;
 
 [StructLayout(LayoutKind.Sequential, Pack = 16, Size = 0x20)]
 public record struct DecadeFileInfo {

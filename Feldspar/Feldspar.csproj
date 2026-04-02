@@ -6,18 +6,20 @@ SPDX-License-Identifier: EUPL-1.2
 
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Libraries\BCDecNet\BCDecNet\BCDecNet.csproj" />
-    <ProjectReference Include="..\Libraries\Neptune\Ceres\Ceres.csproj" />
-    <ProjectReference Include="..\Libraries\Neptune\Charon\Charon.csproj" />
-    <ProjectReference Include="..\Libraries\Neptune\Pluto\Pluto.csproj" />
-    <ProjectReference Include="..\Libraries\Neptune\Triton\Triton.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Libraries\BCDecNet\BCDecNet\BCDecNet.csproj"/>
+		<ProjectReference Include="..\Libraries\Neptune\Ceres\Ceres.csproj"/>
+		<ProjectReference Include="..\Libraries\Neptune\Charon\Charon.csproj"/>
+		<ProjectReference Include="..\Libraries\Neptune\Pluto\Pluto.csproj"/>
+		<ProjectReference Include="..\Libraries\Neptune\Pluto.SourceGen\Pluto.SourceGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+		<ProjectReference Include="..\Libraries\Neptune\Triton\Triton.csproj"/>
+	</ItemGroup>
 
 </Project>

@@ -16,26 +16,25 @@ public static class BlockCompression {
 		var decPos = 0;
 		var decMem = result.Memory;
 		var decSpan = result.Span;
-		
+
 		while (decPos < length) {
 			var size = reader.Read<int>();
 			var isCompressed = ((size >> 15) & 1) == 1;
 			size &= 0x7fff;
-			
+
 			var start = reader.Position - baseOffset;
 
 			if (!isCompressed) {
 				reader.ReadBytes(decSpan.Slice(decPos, Math.Min(size, reader.Length - reader.Position)));
 				decPos += size;
 			} else {
-				Console.WriteLine(reader.Position);
 				using var shared = reader.ReadSharedBytes(size);
 				decPos += CompressionHelper.Decompress(CompressionType.Zlib, shared.Memory, decMem.Slice(decPos, Math.Min(0x4000, length - decPos)));
 			}
 
 			reader.Position = (start + size).Align(0x10) + baseOffset;
 		}
-		
+
 		return result;
 	}
 
