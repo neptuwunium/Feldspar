@@ -102,11 +102,10 @@ public sealed class PackageData : IDisposable {
 							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = modelResourceId;
 						}
 
-						var mainResources = NameLookup.Count;
 						for (var index = 0; index < Math.Min(NameMap.Names.Count - 1, map.PartResourceIndices.Count); ++index) {
 							str = NameMap.Names[index + 1];
-							var resource = Resources[mainResources + index];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = mainResources + index;
+							var resource = Resources[map.PartResourceIndices[index]];
+							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = map.PartResourceIndices[index];
 						}
 
 						Debug.Assert(NameLookup.Count == Resources.Count);
