@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -43,4 +44,7 @@ public struct PDSKey : IEquatable<PDSKey> {
 
 		return PDSKeyRegistry.Lookup.TryGetValue(this, out var name) ? $"{name} ({guid})" : guid;
 	}
+
+	[Conditional("DEBUG")]
+	public void CheckKnown() => Debug.Assert(PDSKeyRegistry.Lookup.ContainsKey(this));
 }

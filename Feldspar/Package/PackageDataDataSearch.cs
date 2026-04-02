@@ -25,6 +25,8 @@ public class PackageDataDataSearch {
 				keySpan[(key.WordCount * 4)..].Clear();
 			}
 
+			key.CheckKnown();
+
 			Entries[key] = ReadEntry(entry);
 		}
 
