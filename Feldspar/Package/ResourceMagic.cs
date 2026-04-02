@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
+using System.Runtime.InteropServices;
 using Pluto.IO.Binary;
 using Pluto.SourceGen.MagicGenerator;
 
@@ -27,4 +28,7 @@ public readonly partial record struct ResourceMagic {
 			Shader2	=> ".g2s",
 			_ => string.Empty,
 		};
+
+	public static ResourceMagic FromResource(IRentedArray<byte> resource) => MemoryMarshal.Read<ResourceMagic>(resource.Span);
+	public static string ToExt(IRentedArray<byte> resource) => FromResource(resource).Ext;
 }

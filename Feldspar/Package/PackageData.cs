@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Pluto;
 using Pluto.IO.Binary;
 
@@ -48,8 +47,7 @@ public sealed class PackageData : IDisposable {
 
 					for (var index = 0; index < Math.Min(NameMap.Names.Count, Resources.Count); index++) {
 						var str = NameMap.Names[index];
-						var resource = Resources[index];
-						NameLookup[baseName + "_" + str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = index;
+						NameLookup[baseName + "_" + str + ResourceMagic.ToExt(Resources[index])] = index;
 					}
 
 					Debug.Assert(NameLookup.Count == Resources.Count);
@@ -88,32 +86,27 @@ public sealed class PackageData : IDisposable {
 					if (EntryMap is { } map && NameMap.Names.Count > 0) {
 						var str = NameMap.Names[0];
 						if (map.TextureResourceId is { } textureResourceId) {
-							var resource = Resources[textureResourceId];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = textureResourceId;
+							NameLookup[str + ResourceMagic.ToExt(Resources[textureResourceId])] = textureResourceId;
 						}
 
 						if (map.MaterialResourceId is { } materialResourceId) {
-							var resource = Resources[materialResourceId];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = materialResourceId;
+							NameLookup[str + ResourceMagic.ToExt(Resources[materialResourceId])] = materialResourceId;
 						}
 
 						if (map.ModelResourceId is { } modelResourceId) {
-							var resource = Resources[modelResourceId];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = modelResourceId;
+							NameLookup[str + ResourceMagic.ToExt(Resources[modelResourceId])] = modelResourceId;
 						}
 
 						for (var index = 0; index < Math.Min(NameMap.Names.Count - 1, map.PartResourceIndices.Count); ++index) {
 							str = NameMap.Names[index + 1];
-							var resource = Resources[map.PartResourceIndices[index]];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = map.PartResourceIndices[index];
+							NameLookup[str + ResourceMagic.ToExt(Resources[map.PartResourceIndices[index]])] = map.PartResourceIndices[index];
 						}
 
 						Debug.Assert(NameLookup.Count == Resources.Count);
 					} else if (NameLookup.Count == Resources.Count) {
 						for (var index = 0; index < Resources.Count; ++index) {
 							var str = NameMap.Names[index];
-							var resource = Resources[index];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = index;
+							NameLookup[str + ResourceMagic.ToExt(Resources[index])] = index;
 						}
 					}
 				}
@@ -123,7 +116,7 @@ public sealed class PackageData : IDisposable {
 		}
 
 		if (NameLookup.Count == 0 && Resources.Count == 1) {
-			NameLookup[Path.GetFileNameWithoutExtension(resourceName) + MemoryMarshal.Read<ResourceMagic>(Resources[0].Span).Ext] = 0;
+			NameLookup[Path.GetFileNameWithoutExtension(resourceName) + ResourceMagic.ToExt(Resources[0])] = 0;
 		}
 	}
 
