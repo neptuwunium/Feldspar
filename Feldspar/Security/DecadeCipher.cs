@@ -16,9 +16,7 @@ public static class DecadeCipher {
 
 		var xorKeyIndex = keySize;
 		foreach (var @byte in magBytes) {
-			if (@byte == 0) {
-				continue;
-			}
+			if (@byte == 0) continue;
 
 			xorKey[--xorKeyIndex] = @byte;
 		}
@@ -31,9 +29,7 @@ public static class DecadeCipher {
 			ref var a = ref data[i];
 			var b = key[i % key.Length];
 
-			if (a != 0 && a != b) {
-				a ^= b;
-			}
+			if (a != 0 && a != b) a ^= b;
 		}
 	}
 }
@@ -57,4 +53,4 @@ public record DecadeKeyRing {
 		KeyDivisor = 0xBUL,
 		KeyMaterial = "ahcTaNwLcATREpxtZEXM8n2uuOn44R3QjvCqXKYfrhaee6svbPvfhxjqCBt2ZQ8nX6TxSt4l9IMpOj1lAeATjpDtcGPQDnqn2wZRJ6qkwWoVy2kk8IxM7861NQ6zeMA7zOrdxunA07BshCT2rB7WyTU6D7Qu3fzciFahnemYvHcloUZDe8oEzwIiPzrPrqWJCDVDnv13QCI0ieqrDuUU65C5o7RcBXoL5yugOsAYBlgpLohOw0nuc0mlt86c2TqQ6F44mGeLzUjCsihAANjkX71U6zmiaSjTuGM4FXiKg1iOrdh9wbq6Yc4T1HjV1jV2grl82axAqEUNgXQLOcQvJQzqLzIdUgFH7oy01EC3bZ63R3Q1JqrywTQUmIzV3m3B"u8.ToArray(),
 	};
-} 
+}
