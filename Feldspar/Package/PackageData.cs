@@ -110,6 +110,12 @@ public sealed class PackageData : IDisposable {
 						}
 
 						Debug.Assert(NameLookup.Count == Resources.Count);
+					} else if (NameLookup.Count == Resources.Count) {
+						for (var index = 0; index < Resources.Count; ++index) {
+							var str = NameMap.Names[index];
+							var resource = Resources[index];
+							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = index;
+						}
 					}
 				}
 
