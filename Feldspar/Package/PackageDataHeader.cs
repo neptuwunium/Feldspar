@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Feldspar.Package;
 
+[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 0x10)]
 public record struct PackageDataHeader {
 	public ulong Magic { get; set; }
 	public PackageMagic DataSystem { get; set; }
