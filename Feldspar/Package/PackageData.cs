@@ -49,7 +49,7 @@ public sealed class PackageData : IDisposable {
 					for (var index = 0; index < Math.Min(NameMap.Names.Count, Resources.Count); index++) {
 						var str = NameMap.Names[index];
 						var resource = Resources[index];
-						NameLookup[baseName + "_" + str + MemoryMarshal.Read<ResourceMagic>(resource.Span).ToExt(resource)] = index;
+						NameLookup[baseName + "_" + str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = index;
 					}
 
 					Debug.Assert(NameLookup.Count == Resources.Count);
@@ -89,24 +89,24 @@ public sealed class PackageData : IDisposable {
 						var str = NameMap.Names[0];
 						if (map.TextureResourceId is { } textureResourceId) {
 							var resource = Resources[textureResourceId];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).ToExt(resource)] = textureResourceId;
+							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = textureResourceId;
 						}
 
 						if (map.MaterialResourceId is { } materialResourceId) {
 							var resource = Resources[materialResourceId];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).ToExt(resource)] = materialResourceId;
+							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = materialResourceId;
 						}
 
 						if (map.ModelResourceId is { } modelResourceId) {
 							var resource = Resources[modelResourceId];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).ToExt(resource)] = modelResourceId;
+							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = modelResourceId;
 						}
 
 						var mainResources = NameLookup.Count;
 						for (var index = 0; index < Math.Min(NameMap.Names.Count - 1, map.PartResourceIndices.Count); ++index) {
 							str = NameMap.Names[index + 1];
 							var resource = Resources[mainResources + index];
-							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).ToExt(resource)] = mainResources + index;
+							NameLookup[str + MemoryMarshal.Read<ResourceMagic>(resource.Span).Ext] = mainResources + index;
 						}
 
 						Debug.Assert(NameLookup.Count == Resources.Count);
@@ -115,6 +115,10 @@ public sealed class PackageData : IDisposable {
 
 				break;
 			}
+		}
+
+		if (NameLookup.Count == 0 && Resources.Count == 1) {
+			NameLookup[Path.GetFileNameWithoutExtension(resourceName) + MemoryMarshal.Read<ResourceMagic>(Resources[0].Span).Ext] = 0;
 		}
 	}
 
