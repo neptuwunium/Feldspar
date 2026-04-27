@@ -6,12 +6,12 @@ uint32_t VMS_Random(uint32_t state) {
     return (state * multiplier) + increment;
 }
 
-void GenMasterSeed() {
+void DecryptMasterKey() {
     uint32_t keySeed[0x180];
     
     // this copies 4 ints at a time from a randomized byte stream.
-    // i manually outlined it because it's 96 times keySeed[n] = globalKeySeed[n];
-    GenKeySeed(keySeed);
+    // i manually outlined it because it's 96 times keySeed[x] = globalKeySeed[y];
+    CopyShuffleKeySeed(keySeed);
 
     uint32_t lcgState = 0x7Bu;
     for (auto i = 0; i < sizeof(keySeed); ++i) {
@@ -19,14 +19,13 @@ void GenMasterSeed() {
         keySeed[i] ^= (lcgState >> 16);
     }
 
-    char* masterKey = g_MasterKey;
     lcgState = 0x7B;
-
     for (auto i = 0; i < sizeof(keySeed), ++i) {
         lcgState = VMS_Random(lcgState);
         uint8_t seedByte = (uint8_t)(keySeed[i] & 0xFF);
-        masterKey[i] = seedByte - (uint8_t)(val >> 16);
+        g_MasterKey[i] = seedByte - (uint8_t)(val >> 16);
     }
 
-    masterKey[sizeof(keySeed)] = 0; 
+    g_MasterKey[sizeof(keySeed)] = 0; 
 }
+
