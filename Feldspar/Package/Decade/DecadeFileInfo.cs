@@ -13,5 +13,5 @@ public record struct DecadeFileInfo {
 	public DecadeFlags Flags { get; set; }
 	public uint Checksum { get; set; }
 	public int CompressedSize { get; set; }
-	public int Size { get; set; }
+	public int MemorySize { get; set; }
 }

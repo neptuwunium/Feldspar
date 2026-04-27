@@ -45,14 +45,14 @@ public class DecadeTable {
 
 		var block = RentedArray<byte>.FromFile(blockPath);
 		try {
-			if ((lookup.Info.Flags & DecadeFlags.Encrypted) != 0) DecadeCipher.Crypt(block.Span, lookup.Info.Size, DecadeKeyRing.Decade);
+			if ((lookup.Info.Flags & DecadeFlags.Encrypted) != 0) DecadeCipher.Crypt(block.Span, lookup.Info.MemorySize, DecadeKeyRing.Decade);
 
 			File.WriteAllBytes("test.bin", block.Span);
 
 			if ((lookup.Info.Flags & DecadeFlags.Compressed) == 0) return block;
 
 			try {
-				return BlockCompression.Decompress(block, lookup.Info.Size);
+				return BlockCompression.Decompress(block, lookup.Info.MemorySize);
 			} finally {
 				block.Dispose();
 			}
