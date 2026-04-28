@@ -10,4 +10,6 @@ SPDX-License-Identifier: EUPL-1.2
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=IV/@EntryIndexedValue">IV</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=KTID/@EntryIndexedValue">KTID</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=PDS/@EntryIndexedValue">PDS</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=RDB/@EntryIndexedValue">RDB</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=RDX/@EntryIndexedValue">RDX</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Dissidia/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
