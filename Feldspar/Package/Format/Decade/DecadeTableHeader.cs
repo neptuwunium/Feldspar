@@ -4,7 +4,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace Feldspar.Package.Decade;
+namespace Feldspar.Package.Format.Decade;
 
 [StructLayout(LayoutKind.Sequential, Pack = 16, Size = 0x10)]
 public record struct DecadeTableHeader {

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using Pluto.IO.Binary;
 using Pluto.SourceGen.MagicGenerator;
 
-namespace Feldspar.Package;
+namespace Feldspar.Package.Format;
 
 [GenerateMagic]
 [Magic("G1TG", "Texture")]

@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
-using Feldspar.Package.IDSOBJ;
+using Feldspar.Package.Format.IDSOBJ;
 
-namespace Feldspar.Package.Muscle;
+namespace Feldspar.Package.Format.Muscle;
 
 [StructLayout(LayoutKind.Sequential, Pack = 8, Size = 0x8)]
 public record struct MuscleBlockTableRecord {

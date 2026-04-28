@@ -4,7 +4,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace Feldspar.Package;
+namespace Feldspar.Package.Format;
 
 [StructLayout(LayoutKind.Sequential, Pack = 8, Size = 0x8)]
 public record struct DINEntry {

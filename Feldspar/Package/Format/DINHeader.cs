@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-namespace Feldspar.Package;
+namespace Feldspar.Package.Format;
 
 public record struct DINHeader {
 	public PackageDataHeader Magic { get; set; }

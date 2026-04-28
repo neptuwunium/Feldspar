@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Feldspar.Package;
+namespace Feldspar.Package.Format;
 
 [InlineArray(20)]
 public struct PDSKey : IEquatable<PDSKey> {

@@ -1,10 +1,14 @@
 using System.Runtime.CompilerServices;
 
-namespace Feldspar.Package.Muscle;
+namespace Feldspar.Package.Format.Muscle;
 
 [InlineArray(16)]
 public struct MuscleBlockHash : IEquatable<MuscleBlockHash> {
+#pragma warning disable 9020
+#pragma warning disable 9022
 	public MuscleBlockHash(ReadOnlySpan<byte> key) => key.CopyTo(this);
+#pragma warning restore 9020
+#pragma warning restore 9022
 
 	private byte Value;
 

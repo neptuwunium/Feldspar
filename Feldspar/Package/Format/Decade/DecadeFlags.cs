@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-namespace Feldspar.Package.Decade;
+namespace Feldspar.Package.Format.Decade;
 
 [Flags]
 public enum DecadeFlags : uint {

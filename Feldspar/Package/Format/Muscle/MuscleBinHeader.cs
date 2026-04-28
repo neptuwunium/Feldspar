@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Feldspar.Package.Muscle;
+namespace Feldspar.Package.Format.Muscle;
 
 [StructLayout(LayoutKind.Sequential, Pack = 8, Size = 0x10)]
 public record struct MuscleBinHeader {

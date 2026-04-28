@@ -4,7 +4,7 @@
 
 using Pluto.SourceGen.MagicGenerator;
 
-namespace Feldspar.Package;
+namespace Feldspar.Package.Format;
 
 [GenerateMagic]
 [Magic("1PDS", "PackageDataSearch", false)]

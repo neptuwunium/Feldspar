@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-namespace Feldspar.Package;
+namespace Feldspar.Package.Format;
 
 public static class PDSKeyRegistry {
 	static PDSKeyRegistry() {

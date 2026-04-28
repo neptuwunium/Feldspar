@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Text;
+using Feldspar.Package.Format;
 using Pluto;
 using Pluto.IO.Binary;
 

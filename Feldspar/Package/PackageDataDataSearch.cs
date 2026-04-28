@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
+using Feldspar.Package.Format;
 using Pluto.IO.Binary;
 
 namespace Feldspar.Package;

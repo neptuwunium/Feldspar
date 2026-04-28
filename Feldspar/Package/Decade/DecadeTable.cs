@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Text;
 using Feldspar.Compression;
+using Feldspar.Package.Format.Decade;
 using Feldspar.Security;
 using Pluto.Extensions;
 using Pluto.IO.Binary;
