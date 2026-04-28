@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Neptuwunium
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ */
+
 // VMS MTH$RANDOM, old glibc
 // https://en.m.wikipedia.org/wiki/Linear_congruential_generator
 uint32_t VMS_Random(uint32_t state) {

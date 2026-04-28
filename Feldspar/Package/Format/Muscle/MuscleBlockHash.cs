@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Neptuwunium
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 using System.Runtime.CompilerServices;
 
 namespace Feldspar.Package.Format.Muscle;
