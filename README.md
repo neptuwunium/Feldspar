@@ -6,9 +6,13 @@ SPDX-License-Identifier: EUPL-1.2
 
 # Feldspar
 
+Note: the project is only a library, no CLI or GUI exists yet.
+
 A resource manager for KTGL2 (also known as "Katana" Engine and about five other names^[1]).
 
 [^1]: Alchemy, Katana, Motor, KTGL Sample, Soft Engine.
+
+Research for the file formats is in https://github.com/neptuwunium/bt/
 
 ## ResourceDatabase
 

@@ -16,7 +16,7 @@ namespace Feldspar.KTGL;
 [Magic("G2S_", "Shader2", "g2s")]
 [Magic("G1L_", "StreamSet", "g1l")]
 [Magic("G1N_", "Font", "g1n")]
-[Magic("G1H_", "HeadMorph", "g1h")] // Head
+[Magic("G1H_", "HeadMorph", "g1h")]
 [Magic("G1TG", "TextureGroup", "g1t")]
 [Magic("G1VS", "VideoSource", "g1v")]
 [Magic("G1SC", "SceneCreator", "g1v")]

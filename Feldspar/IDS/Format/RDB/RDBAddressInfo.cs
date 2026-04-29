@@ -10,18 +10,6 @@ using System.Text;
 
 namespace Feldspar.IDS.Format.RDB;
 
-[Flags]
-public enum RDXFlags : byte {
-	Unknown1 = 1,
-	Unknown2 = 2,
-	RDXReference = 4,
-	ExternalFile = 8,
-	Unknown16 = 0x10,
-	Unknown32 = 0x20,
-	Unknown64 = 0x40,
-	Unknown128 = 0x80,
-}
-
 // game defaults BinSubIndex to 0xF. BinIndex cannot be more than 0xFFF
 public record struct RDBAddressInfo(long Offset, long Length, int BinIndex = -1, int BinSubIndex = -1, string? ExternalPath = null, RDXInfo Index = new()) {
 	private const int OFFSET_IDX = 0;

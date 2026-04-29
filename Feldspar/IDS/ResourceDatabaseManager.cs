@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Neptuwunium
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 using Feldspar.IDS.Format;
 using Feldspar.IDS.Format.RDB;
 using Pluto.IO.FileSystem;
