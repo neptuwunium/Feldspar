@@ -13,7 +13,7 @@ public record struct MuscleBlockInfo {
 	public int CompressedSize { get; set; }
 	public int EncryptedSize { get; set; }
 	public MuscleBlockHash Hash { get; set; }
-	
+
 	public bool IsCompressed => CompressedSize > 0;
 	public bool IsEncrypted => EncryptedSize > 0;
 }

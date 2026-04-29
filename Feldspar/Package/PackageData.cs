@@ -139,7 +139,9 @@ public sealed class PackageData : IDisposable {
 		ObjectPool<List<IRentedArray<byte>>>.Return(Resources);
 		Resources = null!;
 
-		if (LeaveOpen) return;
+		if (LeaveOpen) {
+			return;
+		}
 
 		Buffer.Dispose();
 	}

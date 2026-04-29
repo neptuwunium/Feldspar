@@ -9,16 +9,14 @@ namespace Feldspar.Package.Format.IDSOBJ;
 
 [TransparentStruct<uint>]
 public partial struct KTID {
-	public KTID(string text) {
-		this = CreateKTID(text);
-	}
-	
+	public KTID(string text) => this = CreateKTID(text);
+
 	public KTID(ReadOnlySpan<byte> text) {
 		if (text.Length == 0) {
 			Value = 0;
 			return;
 		}
-		
+
 		this = CreateKTID(text, text[0] * 0x1f);
 	}
 
@@ -43,7 +41,7 @@ public partial struct KTID {
 				inc *= 0x1f;
 				hash += 0x1f * state * (sbyte) ch;
 			}
-			
+
 			return (uint) hash;
 		}
 	}

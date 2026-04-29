@@ -24,13 +24,16 @@ public struct MuscleBlockHash : IEquatable<MuscleBlockHash> {
 			var bottomIndex = 0;
 
 			for (var i = 0; i < 16; i++) {
-				if ((this[i] & 1) == 1)
+				if ((this[i] & 1) == 1) {
 					top[topIndex++] = this[i];
-				else
+				} else {
 					bottom[bottomIndex++] = this[i];
+				}
 			}
 
-			if (bottomIndex > 0) bottom[..bottomIndex].CopyTo(top.AsSpan(topIndex));
+			if (bottomIndex > 0) {
+				bottom[..bottomIndex].CopyTo(top.AsSpan(topIndex));
+			}
 
 			return top;
 		}
@@ -45,13 +48,16 @@ public struct MuscleBlockHash : IEquatable<MuscleBlockHash> {
 			var hash = ToString();
 
 			for (var i = 0; i < 32; i++) {
-				if (char.IsDigit(hash[i]))
+				if (char.IsDigit(hash[i])) {
 					top[topIndex++] = (byte) hash[i];
-				else
+				} else {
 					bottom[bottomIndex++] = (byte) hash[i];
+				}
 			}
 
-			if (bottomIndex > 0) bottom[..bottomIndex].CopyTo(top.AsSpan(topIndex));
+			if (bottomIndex > 0) {
+				bottom[..bottomIndex].CopyTo(top.AsSpan(topIndex));
+			}
 
 			return top;
 		}

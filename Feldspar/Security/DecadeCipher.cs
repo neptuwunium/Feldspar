@@ -16,7 +16,9 @@ public static class DecadeCipher {
 
 		var xorKeyIndex = keySize;
 		foreach (var @byte in magBytes) {
-			if (@byte == 0) continue;
+			if (@byte == 0) {
+				continue;
+			}
 
 			xorKey[--xorKeyIndex] = @byte;
 		}
@@ -29,7 +31,9 @@ public static class DecadeCipher {
 			ref var a = ref data[i];
 			var b = key[i % key.Length];
 
-			if (a != 0 && a != b) a ^= b;
+			if (a != 0 && a != b) {
+				a ^= b;
+			}
 		}
 	}
 }

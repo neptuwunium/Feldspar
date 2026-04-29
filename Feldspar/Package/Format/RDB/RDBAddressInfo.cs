@@ -9,9 +9,6 @@ namespace Feldspar.Package.Format.RDB;
 
 // game defaults BinSubIndex to 0xF. BinIndex cannot be more than 0xFFF
 public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, int BinSubIndex = -1, string? ExternalPath = null, RDXInfo RDX = default) {
-	public static RDBAddressInfo Parse(ReadOnlySpan<byte> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
-	public static RDBAddressInfo Parse(ReadOnlySpan<char> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
-
 	private const int OFFSET_IDX = 0;
 	private const int LENGTH_IDX = 1;
 	private const int BIN_IDX_IDX = 2;
@@ -19,7 +16,52 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 	private const int EXT_PATH_IDX = 4;
 	private const int MAX_IDX = 5;
 	private static ReadOnlySpan<byte> Identifiers => "@#&?\0"u8;
-	
+
+	public string Ext {
+		get {
+			if (BinSubIndex == -1 && BinIndex == -1) {
+				return string.Empty;
+			}
+
+			var sb = new StringBuilder();
+
+			if (BinIndex > -1) {
+				sb.Append($"{BinIndex}");
+			}
+
+			if (BinSubIndex > -1) {
+				sb.Append($"_{BinSubIndex}");
+			}
+
+			return sb.ToString();
+		}
+	}
+
+	public string? ExternalPath {
+		get;
+		set {
+			if (RDX != default) {
+				throw new InvalidOperationException("ExternalPath cannot be set with RDX set");
+			}
+
+			field = value;
+		}
+	} = ExternalPath;
+
+	public RDXInfo RDX {
+		readonly get => field;
+		set {
+			if (!string.IsNullOrEmpty(ExternalPath)) {
+				throw new InvalidOperationException("RDX cannot be set with ExternalPath set");
+			}
+
+			field = value;
+		}
+	} = RDX;
+
+	public static RDBAddressInfo Parse(ReadOnlySpan<byte> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
+	public static RDBAddressInfo Parse(ReadOnlySpan<char> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
+
 	public static bool TryParse(ReadOnlySpan<char> address, out RDBAddressInfo addressInfo) {
 		var bytes = (stackalloc byte[Encoding.UTF8.GetByteCount(address)]);
 		var n = Encoding.UTF8.GetBytes(address, bytes);
@@ -42,7 +84,7 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 				if (nextIdx == -1 || nextIdx <= currentIdx) {
 					return false;
 				}
-				
+
 				currentIdx = nextIdx;
 				positions[currentIdx] = index + 1;
 
@@ -113,49 +155,7 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 		} else if (RDX != default) {
 			sb.Append($"?{RDX}");
 		}
-		
+
 		return sb.ToString();
 	}
-
-	public string Ext {
-		get {
-			if (BinSubIndex == -1 && BinIndex == -1) {
-				return string.Empty;
-			}
-			
-			var sb = new StringBuilder();
-
-			if (BinIndex > -1) {
-				sb.Append($"{BinIndex}");
-			}
-
-			if (BinSubIndex > -1) {
-				sb.Append($"_{BinSubIndex}");
-			}
-
-			return sb.ToString();
-		}
-	}
-
-	public string? ExternalPath {
-		get;
-		set {
-			if (RDX != default) {
-				throw new InvalidOperationException("ExternalPath cannot be set with RDX set");
-			}
-
-			field = value;
-		}
-	} = ExternalPath;
-
-	public RDXInfo RDX {
-		readonly get => field;
-		set {
-			if (!string.IsNullOrEmpty(ExternalPath)) {
-				throw new InvalidOperationException("RDX cannot be set with ExternalPath set");
-			}
-			
-			field = value;
-		}
-	} = RDX;
 }

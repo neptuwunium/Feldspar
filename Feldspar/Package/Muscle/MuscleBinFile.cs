@@ -6,8 +6,8 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Security.Cryptography;
 using Charon.Compression;
-using Feldspar.Package.Format.Muscle;
 using Feldspar.Package.Format.IDSOBJ;
+using Feldspar.Package.Format.Muscle;
 using Pluto.IO.Binary;
 
 namespace Feldspar.Package.Muscle;
@@ -50,8 +50,12 @@ public sealed class MuscleBinFile : IDisposable {
 		}
 
 		stream.Position = 0;
-		MemoryMappedFile = MemoryMappedFile.CreateFromFile(stream, null, 0, MemoryMappedFileAccess.Read,  HandleInheritability.None, false);
+		MemoryMappedFile = MemoryMappedFile.CreateFromFile(stream, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, false);
 	}
+
+	public Dictionary<KTID, MuscleBlockInfo> Files { get; } = [];
+	public MemoryMappedFile MemoryMappedFile { get; }
+	public void Dispose() => MemoryMappedFile.Dispose();
 
 	public RentedArray<byte> OpenFile(KTID id) {
 		if (!Files.TryGetValue(id, out var info) || info.MemorySize == 0) {
@@ -88,8 +92,4 @@ public sealed class MuscleBinFile : IDisposable {
 
 		return result;
 	}
-
-	public Dictionary<KTID, MuscleBlockInfo> Files { get; } = [];
-	public MemoryMappedFile MemoryMappedFile { get; }
-	public void Dispose() => MemoryMappedFile.Dispose();
 }

@@ -24,8 +24,8 @@ public readonly partial record struct ResourceMagic {
 			Animation => ".g1a",
 			Animation2 => ".g2a",
 			MaterialInstance => ".swg",
-			Shader	=> ".g1s",
-			Shader2	=> ".g2s",
+			Shader => ".g1s",
+			Shader2 => ".g2s",
 			_ => string.Empty,
 		};
 

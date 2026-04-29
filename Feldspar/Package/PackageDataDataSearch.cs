@@ -34,12 +34,15 @@ public class PackageDataDataSearch {
 		return;
 
 		(int, uint) ReadEntry(PDSEntry entry) {
-			if (entry.EntryIndex == -1 || entry.Flags == 0) return (0, 0);
+			if (entry.EntryIndex == -1 || entry.Flags == 0) {
+				return (0, 0);
+			}
 
 			reader.Position = Header.ValueOffset + entry.EntryIndex * 4;
 			var offset = reader.Read<int>();
 
-			if ((entry.Flags & 0xffffff) != 0) { // global type instance
+			if ((entry.Flags & 0xffffff) != 0) {
+				// global type instance
 				reader.Position = Header.ValueOffset + 8;
 				return (reader.Read<int>() + offset, entry.Flags);
 			}
@@ -56,8 +59,11 @@ public class PackageDataDataSearch {
 			}
 
 			var adj = reader.Read<uint>();
-			if (adj <= 0xFFFFFF) { // global type instance but funky
-				if ((entry.Flags & 0x10000000) != 0) adj >>= 2;
+			// global type instance but funky
+			if (adj <= 0xFFFFFF) {
+				if ((entry.Flags & 0x10000000) != 0) {
+					adj >>= 2;
+				}
 
 				var mask = entry.Flags | adj;
 				reader.Position = Header.ValueOffset + 8;
