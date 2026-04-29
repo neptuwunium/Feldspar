@@ -9,6 +9,7 @@ namespace Feldspar.Package.Format.RDB;
 
 // game defaults BinSubIndex to 0xF. BinIndex cannot be more than 0xFFF
 public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, int BinSubIndex = -1, string? ExternalPath = null, RDXInfo RDX = default) {
+	public static RDBAddressInfo Parse(ReadOnlySpan<byte> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
 	public static RDBAddressInfo Parse(ReadOnlySpan<char> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
 
 	private const int OFFSET_IDX = 0;
@@ -17,9 +18,15 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 	private const int BIN_SUBIDX_IDX = 3;
 	private const int EXT_PATH_IDX = 4;
 	private const int MAX_IDX = 5;
-	private static readonly char[] IDENT = ['@', '#', '&', '?', '\0'];
+	private static ReadOnlySpan<byte> Identifiers => "@#&?\0"u8;
 	
 	public static bool TryParse(ReadOnlySpan<char> address, out RDBAddressInfo addressInfo) {
+		var bytes = (stackalloc byte[Encoding.UTF8.GetByteCount(address)]);
+		var n = Encoding.UTF8.GetBytes(address, bytes);
+		return TryParse(bytes[..n], out addressInfo);
+	}
+
+	public static bool TryParse(ReadOnlySpan<byte> address, out RDBAddressInfo addressInfo) {
 		var positions = (stackalloc int[MAX_IDX]);
 		var lengths = (stackalloc int[MAX_IDX]);
 		positions[0] = 0;
@@ -27,9 +34,16 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 
 		addressInfo = new RDBAddressInfo();
 
+		var id = Identifiers;
+
 		for (var index = 0; index < address.Length; ++index) {
-			if (address[index] == IDENT[currentIdx]) {
-				currentIdx++;
+			if (!char.IsAsciiHexDigit((char) address[index])) {
+				var nextIdx = id.IndexOf(address[index]);
+				if (nextIdx == -1 || nextIdx <= currentIdx) {
+					return false;
+				}
+				
+				currentIdx = nextIdx;
 				positions[currentIdx] = index + 1;
 
 				if (currentIdx == MAX_IDX - 1) {
@@ -38,10 +52,6 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 				}
 
 				continue;
-			}
-
-			if (!char.IsAsciiHexDigit(address[index])) {
-				return false;
 			}
 
 			lengths[currentIdx]++;
@@ -80,7 +90,7 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 		}
 
 		if (positions[EXT_PATH_IDX] > 0) {
-			addressInfo.ExternalPath = new string(address.Slice(positions[EXT_PATH_IDX], lengths[EXT_PATH_IDX]));
+			addressInfo.ExternalPath = Encoding.UTF8.GetString(address.Slice(positions[EXT_PATH_IDX], lengths[EXT_PATH_IDX]));
 		}
 
 		return true;
@@ -100,9 +110,7 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 
 		if (!string.IsNullOrEmpty(ExternalPath)) {
 			sb.Append($"?{ExternalPath}");
-		}
-
-		if (RDX != default) {
+		} else if (RDX != default) {
 			sb.Append($"?{RDX}");
 		}
 		
@@ -128,4 +136,26 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 			return sb.ToString();
 		}
 	}
+
+	public string? ExternalPath {
+		get;
+		set {
+			if (RDX != default) {
+				throw new InvalidOperationException("ExternalPath cannot be set with RDX set");
+			}
+
+			field = value;
+		}
+	} = ExternalPath;
+
+	public RDXInfo RDX {
+		readonly get => field;
+		set {
+			if (!string.IsNullOrEmpty(ExternalPath)) {
+				throw new InvalidOperationException("RDX cannot be set with ExternalPath set");
+			}
+			
+			field = value;
+		}
+	} = RDX;
 }
