@@ -24,7 +24,7 @@ public enum RDBStorageType : byte {
 public enum RDBLocationType : byte {
 	Virtual,
 	External,
-	Internal
+	Internal,
 }
 
 [BitStruct(4)]

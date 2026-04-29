@@ -10,18 +10,6 @@ public sealed class ResourceDatabaseManager : IDisposable {
 		RDXInfo.ResolveLanguage = ResolveLanguage;
 	}
 
-	public void Mount(string path) {
-		foreach (var rdbFile in new FileEnumerator(path, new EnumerationOptions { RecurseSubdirectories = true }, "*.rdb")) {
-			var db = new ResourceDatabase(rdbFile, this);
-
-			if (Databases.TryGetValue(db.Name, out var existing)) {
-				existing.Dispose();
-			}
-
-			Databases[db.Name] = db;
-		}
-	}
-
 	public Dictionary<KTID, ResourceDatabase> Databases { get; } = [];
 
 	public Dictionary<byte, string> MountPaths { get; set; } = new(0xff);
@@ -36,6 +24,18 @@ public sealed class ResourceDatabaseManager : IDisposable {
 
 		RDXInfo.ResolveMount = RDXInfo.DefaultResolveMount;
 		RDXInfo.ResolveLanguage = RDXInfo.DefaultResolveLanguage;
+	}
+
+	public void Mount(string path) {
+		foreach (var rdbFile in new FileEnumerator(path, new EnumerationOptions { RecurseSubdirectories = true }, "*.rdb")) {
+			var db = new ResourceDatabase(rdbFile, this);
+
+			if (Databases.TryGetValue(db.Name, out var existing)) {
+				existing.Dispose();
+			}
+
+			Databases[db.Name] = db;
+		}
 	}
 
 	public string ResolveMount(byte value) => MountPaths.GetValueOrDefault(value) ?? RDXInfo.DefaultResolveMount(value);

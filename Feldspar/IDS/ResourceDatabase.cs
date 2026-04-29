@@ -61,7 +61,7 @@ public sealed class ResourceDatabase : IDisposable {
 	public ResourceDatabaseManager Manager { get; }
 	public RentedArray<RDXInfo> Index { get; } = RentedArray<RDXInfo>.Empty;
 	public Dictionary<KTID, Resource> Resources { get; }
-	public Dictionary<KTID, MemoryMappedFile> Streams { get; } = [];
+	public Dictionary<KTID, MemoryMappedFile?> Streams { get; } = [];
 	public string BasePath { get; }
 	public string ExternalPath { get; }
 	public KTID Name { get; }
@@ -70,7 +70,7 @@ public sealed class ResourceDatabase : IDisposable {
 		Index.Dispose();
 
 		foreach (var value in Streams.Values) {
-			value.Dispose();
+			value?.Dispose();
 		}
 
 		Streams.Clear();
@@ -147,10 +147,12 @@ public sealed class ResourceDatabase : IDisposable {
 				return;
 			}
 
-			stream.Dispose();
+			stream?.Dispose();
 		}
 
 		if (!Path.Exists(path)) {
+			Log.Information("[rdb] cannot {Type} {Path} as it does not exist", isMounting ? "mount" : "remount", Path.GetRelativePath(BasePath, path));
+			Streams[id] = null;
 			return;
 		}
 

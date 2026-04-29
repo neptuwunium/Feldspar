@@ -29,6 +29,18 @@ public class Resource : IDisposable {
 		reader.Align();
 	}
 
+	public ResourceDatabase Database { get; }
+	public RDBIndexHeader Header { get; set; }
+	public RDBAddressInfo AddressInfo { get; set; }
+	public ResourceObject ObjectData { get; set; } = ResourceObject.Empty;
+	public RentedArray<byte> Buffer { get; set; } = RentedArray<byte>.Empty;
+	public bool IsLoaded => Buffer.Length > 0;
+
+	public void Dispose() {
+		Dispose(true);
+		GC.SuppressFinalize(this);
+	}
+
 	public void ParseResourceInfo(StreamBinaryReader reader) {
 		Header = reader.Read<RDBIndexHeader>();
 
@@ -48,13 +60,6 @@ public class Resource : IDisposable {
 			reader.Position += Header.PropertyValueSize;
 		}
 	}
-
-	public ResourceDatabase Database { get; }
-	public RDBIndexHeader Header { get; set; }
-	public RDBAddressInfo AddressInfo { get; set; }
-	public ResourceObject ObjectData { get; set; } = ResourceObject.Empty;
-	public RentedArray<byte> Buffer { get; set; } = RentedArray<byte>.Empty;
-	public bool IsLoaded => Buffer.Length > 0;
 
 	public virtual void Create() {
 		if (IsLoaded) {
@@ -78,10 +83,5 @@ public class Resource : IDisposable {
 			Destroy();
 			ObjectData.Dispose();
 		}
-	}
-
-	public void Dispose() {
-		Dispose(true);
-		GC.SuppressFinalize(this);
 	}
 }

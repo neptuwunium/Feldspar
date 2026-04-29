@@ -34,7 +34,7 @@ public record struct RDBAddressInfo(long Offset, long Length, int BinIndex = -1,
 
 	public RDXFlags IndexFlags { get; set; }
 	public byte IndexUnknown { get; set; }
-	public bool IsValid => Offset >= 0x10 && Length > Unsafe.SizeOf<RDBIndexHeader>();
+	public bool IsValid => Offset >= 0x10 && Length >= Unsafe.SizeOf<RDBIndexHeader>();
 
 	public string Ext {
 		get {
@@ -103,7 +103,7 @@ public record struct RDBAddressInfo(long Offset, long Length, int BinIndex = -1,
 			addressInfo.Offset = ReadVariableInt(2, address);
 			addressInfo.Length = ReadVariableInt(addressBytes + 2, address);
 			addressInfo.Index = new RDXInfo {
-				Index = MemoryMarshal.Read<ushort>(address[(addressSize + 2)..])
+				Index = MemoryMarshal.Read<ushort>(address[(addressSize + 2)..]),
 			};
 			addressInfo.IndexUnknown = address[addressSize + 4];
 
