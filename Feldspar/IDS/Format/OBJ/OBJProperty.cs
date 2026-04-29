@@ -17,7 +17,7 @@ public enum OBJPropertyType : uint {
 	Float32,
 	Float64,
 	Vector4F,
-	Quaternion,
+	Matrix4F,
 	Vector2F,
 	Vector3F,
 	None,

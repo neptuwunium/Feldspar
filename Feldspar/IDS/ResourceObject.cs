@@ -30,7 +30,7 @@ public sealed class ResourceObject : IDisposable {
 				OBJPropertyType.Float32 => 4,
 				OBJPropertyType.Float64 => 8,
 				OBJPropertyType.Vector4F => 16,
-				OBJPropertyType.Quaternion => 16,
+				OBJPropertyType.Matrix4F => 64,
 				OBJPropertyType.Vector2F => 8,
 				OBJPropertyType.Vector3F => 12,
 				_ => 0,

@@ -33,7 +33,7 @@ public class ResourceObjectConverter : JsonConverter<ResourceObject> {
 				OBJPropertyType.Float32 => value.ReadProperties<float>(name).Cast<object>(),
 				OBJPropertyType.Float64 => value.ReadProperties<double>(name).Cast<object>(),
 				OBJPropertyType.Vector4F => value.ReadProperties<Vector4D<float>>(name).Cast<object>(),
-				OBJPropertyType.Quaternion => value.ReadProperties<Quaternion<float>>(name).Cast<object>(),
+				OBJPropertyType.Matrix4F => value.ReadProperties<Matrix4X4<float>>(name).Cast<object>(),
 				OBJPropertyType.Vector2F => value.ReadProperties<Vector4D<float>>(name).Cast<object>(),
 				OBJPropertyType.Vector3F => value.ReadProperties<Vector3D<float>>(name).Cast<object>(),
 				OBJPropertyType.None => throw new UnreachableException(),
