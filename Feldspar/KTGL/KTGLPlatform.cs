@@ -1,0 +1,25 @@
+namespace Feldspar.KTGL;
+
+public enum KTGLPlatform : uint {
+	D3D9,
+	PS3,
+	X360,
+	RVL,
+	NTR,
+	CTR,
+	NGP,
+	Android,
+	IOS,
+	Cafe,
+	D3D11,
+	PS4,
+	XBO,
+	Unknown13,
+	D3D12,
+	Unknown15,
+	NX,
+	Unknown17,
+	Unknown18,
+	PS5,
+	XSX,
+}

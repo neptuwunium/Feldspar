@@ -13,7 +13,7 @@ namespace Feldspar.IDS;
 public sealed class ResourceObject : IDisposable {
 	public ResourceObject() => Data = RentedArray<byte>.Empty;
 
-	public ResourceObject(Span<OBJProperty> properties, RentedArray<byte> data) {
+	public ResourceObject(ReadOnlySpan<OBJProperty> properties, RentedArray<byte> data) {
 		Data = data;
 
 		var offset = 0;
@@ -48,6 +48,7 @@ public sealed class ResourceObject : IDisposable {
 	public static ResourceObject Empty { get; } = new();
 
 	public RentedArray<byte> Data { get; }
+	public bool IsEmpty => Data.Length == 0;
 	public Dictionary<KTID, (OBJProperty Property, int Offset, int Stride)> Properties { get; } = [];
 
 	private static MethodInfo ReadVariantNumberMethod { get; } = typeof(ResourceObject).GetMethod("ReadVariantNumber", BindingFlags.NonPublic | BindingFlags.Instance) ?? throw new UnreachableException();

@@ -10,7 +10,7 @@ namespace Feldspar.Package.Format.Muscle;
 public struct MuscleBlockHash : IEquatable<MuscleBlockHash> {
 #pragma warning disable 9020
 #pragma warning disable 9022
-	public MuscleBlockHash(ReadOnlySpan<byte> key) => key.CopyTo(this);
+	public MuscleBlockHash(ReadOnlySpan<byte> key) => key[..16].CopyTo(this);
 #pragma warning restore 9020
 #pragma warning restore 9022
 

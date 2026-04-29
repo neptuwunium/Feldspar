@@ -1,4 +1,6 @@
+using Feldspar.IDS.Format;
 using Feldspar.IDS.Format.RDB;
+using Pluto.IO.FileSystem;
 
 namespace Feldspar.IDS;
 
@@ -8,13 +10,25 @@ public sealed class ResourceDatabaseManager : IDisposable {
 		RDXInfo.ResolveLanguage = ResolveLanguage;
 	}
 
-	public List<ResourceDatabase> Databases { get; } = [];
+	public void Mount(string path) {
+		foreach (var rdbFile in new FileEnumerator(path, new EnumerationOptions { RecurseSubdirectories = true }, "*.rdb")) {
+			var db = new ResourceDatabase(rdbFile, this);
+
+			if (Databases.TryGetValue(db.Name, out var existing)) {
+				existing.Dispose();
+			}
+
+			Databases[db.Name] = db;
+		}
+	}
+
+	public Dictionary<KTID, ResourceDatabase> Databases { get; } = [];
 
 	public Dictionary<byte, string> MountPaths { get; set; } = new(0xff);
 	public Dictionary<byte, string> LanguagePaths { get; set; } = new(0xff);
 
 	public void Dispose() {
-		foreach (var value in Databases) {
+		foreach (var value in Databases.Values) {
 			value.Dispose();
 		}
 
@@ -44,7 +58,7 @@ public sealed class ResourceDatabaseManager : IDisposable {
 	}
 
 	public void Remount() {
-		foreach (var database in Databases) {
+		foreach (var database in Databases.Values) {
 			database.Remount();
 		}
 	}

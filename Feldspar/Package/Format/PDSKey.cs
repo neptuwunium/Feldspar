@@ -12,7 +12,7 @@ namespace Feldspar.Package.Format;
 public struct PDSKey : IEquatable<PDSKey> {
 #pragma warning disable 9020
 #pragma warning disable 9022
-	public PDSKey(ReadOnlySpan<byte> key) => key.CopyTo(this);
+	public PDSKey(ReadOnlySpan<byte> key) => key[..(key.Length > 20 ? 20 : key.Length)].CopyTo(this);
 
 	public PDSKey(string key) => Convert.FromHexString(key, this, out _, out _);
 #pragma warning restore 9022
