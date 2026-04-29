@@ -5,7 +5,7 @@
 using System.Text;
 using Pluto.SourceGen.TransparentStructGenerator;
 
-namespace Feldspar.Package.Format.IDSOBJ;
+namespace Feldspar.IDS.Format;
 
 [TransparentStruct<uint>]
 public partial struct KTID {

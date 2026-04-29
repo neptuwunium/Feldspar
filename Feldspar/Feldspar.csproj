@@ -22,4 +22,9 @@ SPDX-License-Identifier: EUPL-1.2
 		<ProjectReference Include="..\Libraries\Neptune\Triton\Triton.csproj"/>
 	</ItemGroup>
 
+	<ItemGroup>
+		<PackageReference Include="JetBrains.Annotations" Version="2025.2.4"/>
+		<PackageReference Include="Silk.NET.Maths" Version="2.23.0"/>
+	</ItemGroup>
+
 </Project>

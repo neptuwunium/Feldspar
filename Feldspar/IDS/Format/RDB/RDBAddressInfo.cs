@@ -5,10 +5,10 @@
 using System.Globalization;
 using System.Text;
 
-namespace Feldspar.Package.Format.RDB;
+namespace Feldspar.IDS.Format.RDB;
 
 // game defaults BinSubIndex to 0xF. BinIndex cannot be more than 0xFFF
-public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, int BinSubIndex = -1, string? ExternalPath = null, RDXInfo RDX = default) {
+public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, int BinSubIndex = -1, string? ExternalPath = null, RDXInfo Index = default) {
 	private const int OFFSET_IDX = 0;
 	private const int LENGTH_IDX = 1;
 	private const int BIN_IDX_IDX = 2;
@@ -40,7 +40,7 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 	public string? ExternalPath {
 		get;
 		set {
-			if (RDX != default) {
+			if (Index != default) {
 				throw new InvalidOperationException("ExternalPath cannot be set with RDX set");
 			}
 
@@ -48,7 +48,7 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 		}
 	} = ExternalPath;
 
-	public RDXInfo RDX {
+	public RDXInfo Index {
 		readonly get => field;
 		set {
 			if (!string.IsNullOrEmpty(ExternalPath)) {
@@ -57,7 +57,7 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 
 			field = value;
 		}
-	} = RDX;
+	} = Index;
 
 	public static RDBAddressInfo Parse(ReadOnlySpan<byte> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
 	public static RDBAddressInfo Parse(ReadOnlySpan<char> address) => !TryParse(address, out var addressInfo) ? throw new FormatException("address info is not valid") : addressInfo;
@@ -152,8 +152,8 @@ public record struct RDBAddressInfo(long Offset, int Length, int BinIndex = -1, 
 
 		if (!string.IsNullOrEmpty(ExternalPath)) {
 			sb.Append($"?{ExternalPath}");
-		} else if (RDX != default) {
-			sb.Append($"?{RDX}");
+		} else if (Index != default) {
+			sb.Append($"?{Index}");
 		}
 
 		return sb.ToString();

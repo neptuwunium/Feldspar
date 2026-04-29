@@ -7,7 +7,7 @@ using Pluto.SourceGen.MagicGenerator;
 namespace Feldspar.Package.Format;
 
 [GenerateMagic]
-[Magic("1PDS", "PackageDataSearch", false)]
-[Magic("1BPS", "BundlePackageSearch", false)]
-[Magic("1DIN", "DataIndexName", false)]
+[Magic("1PDS", "PackageDataSearch", little: false)]
+[Magic("1BPS", "BundlePackageSearch", little: false)]
+[Magic("1DIN", "DataIndexName", little: false)]
 public readonly partial record struct PackageMagic;

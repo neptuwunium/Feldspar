@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Security.Cryptography;
 using Charon.Compression;
-using Feldspar.Package.Format.IDSOBJ;
+using Feldspar.IDS.Format;
 using Feldspar.Package.Format.Muscle;
 using Pluto.IO.Binary;
 
