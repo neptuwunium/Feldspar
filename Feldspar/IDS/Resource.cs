@@ -40,6 +40,7 @@ public sealed class Resource : IDisposable {
 	public void Dispose() {
 		Destroy();
 		ObjectData.Dispose();
+		Object?.Dispose();
 	}
 
 	public void ReadResourceInfo(StreamBinaryReader reader) {
@@ -62,9 +63,18 @@ public sealed class Resource : IDisposable {
 		}
 	}
 
-	public bool Create() {
+	public bool Create(bool recreate = false) {
 		if (!Load()) {
 			return false;
+		}
+
+		if (Object != null) {
+			if (!recreate) {
+				return true;
+			}
+
+			Object.Dispose();
+			Object = null;
 		}
 
 		if (!ObjectTypeRegistry.Types.TryGetValue(Header.TypeId, out var type)) {
@@ -73,9 +83,7 @@ public sealed class Resource : IDisposable {
 
 		if (Buffer.Length > 0 && type.GetConstructor(OBJECT_READER_CONSTRUCTOR_ARGS) is { } readerConstructor) {
 			Object = (ResourceObject) readerConstructor.Invoke(null, [this, new ArrayPoolBinaryReader(Buffer, true)])!;
-		}
-
-		if (type.GetConstructor(OBJECT_CONSTRUCTOR_ARGS) is { } constructor) {
+		} else if (type.GetConstructor(OBJECT_CONSTRUCTOR_ARGS) is { } constructor) {
 			Object = (ResourceObject) constructor.Invoke(null, [this])!;
 		}
 
@@ -83,11 +91,8 @@ public sealed class Resource : IDisposable {
 	}
 
 	public bool Destroy() {
-		if (Object is { } obj) {
-			obj.Dispose();
-			Object = null;
-		}
-
+		Object?.Dispose();
+		Object = null;
 		return Unload();
 	}
 
