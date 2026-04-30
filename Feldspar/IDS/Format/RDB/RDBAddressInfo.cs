@@ -20,9 +20,10 @@ public record struct RDBAddressInfo(long Offset, long Length, int BinIndex = -1,
 	private const int MAX_IDX = 5;
 	private static ReadOnlySpan<byte> Identifiers => "@#&?\0"u8;
 
+	public long RDBPosition { get; set; }
 	public RDXFlags IndexFlags { get; set; }
 	public byte IndexUnknown { get; set; }
-	public bool IsValid => Offset >= 0x10 && Length >= Unsafe.SizeOf<RDBIndexHeader>();
+	public bool IsValid => RDBPosition > 0 && Offset >= 0x10 && Length >= Unsafe.SizeOf<RDBIndexHeader>();
 
 	public string Ext {
 		get {
@@ -76,7 +77,10 @@ public record struct RDBAddressInfo(long Offset, long Length, int BinIndex = -1,
 	}
 
 	public static bool TryParse(ReadOnlySpan<byte> address, out RDBAddressInfo addressInfo) {
-		addressInfo = new RDBAddressInfo();
+		addressInfo = new RDBAddressInfo {
+			BinIndex = -1,
+			BinSubIndex = -1,
+		};
 
 		if (address.Length == 0) {
 			return false;

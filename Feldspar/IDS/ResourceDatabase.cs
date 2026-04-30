@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Charon.Compression;
 using Feldspar.IDS.Format;
 using Feldspar.IDS.Format.RDB;
 using Pluto;
@@ -22,8 +23,8 @@ public sealed class ResourceDatabase : IDisposable {
 
 		Log.Information("[rdb] reading ResourceDatabase {Name}", Name);
 
-		using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-		using var reader = new StreamBinaryReader(stream);
+		DatabaseStream = MemoryMappedFile.CreateFromFile(path, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+		using var reader = new StreamBinaryReader(DatabaseStream.CreateViewStream(0, 0, MemoryMappedFileAccess.Read));
 		var header = reader.Read<RDBHeader>();
 		ExternalPath = reader.ReadCString<byte>(Encoding.UTF8, header.Size - Unsafe.SizeOf<RDBHeader>());
 
@@ -61,6 +62,7 @@ public sealed class ResourceDatabase : IDisposable {
 	public ResourceDatabaseManager Manager { get; }
 	public RentedArray<RDXInfo> Index { get; } = RentedArray<RDXInfo>.Empty;
 	public Dictionary<KTID, Resource> Resources { get; }
+	public MemoryMappedFile DatabaseStream { get; }
 	public Dictionary<KTID, MemoryMappedFile?> Streams { get; } = [];
 	public string BasePath { get; }
 	public string ExternalPath { get; }
@@ -141,6 +143,31 @@ public sealed class ResourceDatabase : IDisposable {
 		}
 	}
 
+	public KTID GetResourcePackage(Resource resource) {
+		var address = resource.AddressInfo;
+		if (!address.IsValid) {
+			return default;
+		}
+
+		if (address.Index.IsValid) {
+			return (address.IndexFlags & RDXFlags.ExternalFile) != 0 ? resource.Header.NameId : address.Index.FDataId;
+		}
+
+		if (resource.Header.Info.Location != RDBLocationType.External) {
+			var targetPath = Path.Combine(BasePath, Name + ".rdb.bin");
+
+			if (!string.IsNullOrEmpty(address.ExternalPath)) {
+				targetPath = address.ExternalPath;
+			}
+
+			targetPath += address.Ext;
+
+			return KTID.CreateKTID(Path.GetFileName(targetPath));
+		}
+
+		return resource.Header.NameId;
+	}
+
 	public void Mount(KTID id, string path, bool isMounting = false) {
 		if (Streams.TryGetValue(id, out var stream)) {
 			if (isMounting) {
@@ -160,5 +187,104 @@ public sealed class ResourceDatabase : IDisposable {
 		Streams[id] = MemoryMappedFile.CreateFromFile(path, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
 	}
 
-	public void Read(Resource resource) => throw new NotImplementedException();
+	public bool LoadResource(Resource resource) {
+		const int BLOCK_SIZE = 0x4000;
+
+		if (resource.IsLoaded) {
+			return true;
+		}
+
+		if (Streams.GetValueOrDefault(GetResourcePackage(resource)) is not { } stream) {
+			return false;
+		}
+
+		var offset = resource.AddressInfo.Offset;
+		if (resource.AddressInfo.Index.IsValid && (resource.AddressInfo.IndexFlags & RDXFlags.ExternalFile) != 0) {
+			offset = 0;
+		}
+
+		using var reader = new StreamBinaryReader(stream.CreateViewStream(offset, resource.AddressInfo.Length, MemoryMappedFileAccess.Read));
+		resource.ReadResourceInfo(reader);
+
+		var buffer = new RentedArray<byte>(checked((int) resource.Header.MemorySize));
+		try {
+			if (resource.Header.Info.Storage == RDBStorageType.None) {
+				reader.Read(buffer.Span);
+				resource.Buffer = buffer;
+				return true;
+			}
+
+			using var scratch = new RentedArray<byte>(BLOCK_SIZE);
+			var output = buffer.Memory;
+			var bufferOffset = 0;
+
+			var comType = resource.Header.Info.Storage switch {
+				RDBStorageType.Lz4 => CompressionType.LZ4,
+				_ => CompressionType.Zlib,
+			};
+
+			while (bufferOffset < resource.Header.MemorySize) {
+				var remainingChunk = checked((int) Math.Min(BLOCK_SIZE, resource.Header.MemorySize - bufferOffset));
+				var targetBlock = output.Slice(bufferOffset, remainingChunk);
+
+				switch (resource.Header.Info.Storage) {
+					case RDBStorageType.Zlib:
+					case RDBStorageType.Lz4: {
+						var compressedSize = reader.Read<int>();
+						if (compressedSize == 0) {
+							break;
+						}
+
+						Debug.Assert(compressedSize is > 0 and < BLOCK_SIZE);
+
+						reader.Read(scratch.Span[..compressedSize]);
+						bufferOffset += CompressionHelper.Decompress(comType, scratch.Memory[..compressedSize], targetBlock);
+						continue;
+					}
+					case RDBStorageType.ChecksumZlib: {
+						var compressedSize = reader.Read<ushort>();
+						if (compressedSize == 0) {
+							break;
+						}
+
+						reader.Position += 8; // skip checksums
+
+						Debug.Assert(compressedSize is > 0 and < BLOCK_SIZE);
+
+						reader.Read(scratch.Span[..compressedSize]);
+						bufferOffset += CompressionHelper.Decompress(comType, scratch.Memory[..compressedSize], targetBlock);
+						continue;
+					}
+					case RDBStorageType.XorZlib: throw new NotSupportedException();
+					case RDBStorageType.None: throw new UnreachableException();
+					default: throw new NotSupportedException();
+				}
+			}
+
+			if (bufferOffset >= resource.Header.MemorySize) {
+				resource.Buffer = buffer;
+				return true;
+			}
+		} catch {
+			buffer.Dispose();
+			throw;
+		}
+
+		buffer.Dispose();
+		return false;
+	}
+
+	public bool UnloadResource(Resource resource) {
+		if (!resource.IsLoaded) {
+			return true;
+		}
+
+		resource.Buffer.Dispose();
+		resource.Buffer = RentedArray<byte>.Empty;
+
+		using var reader = new StreamBinaryReader(DatabaseStream.CreateViewStream(resource.AddressInfo.RDBPosition, 0, MemoryMappedFileAccess.Read));
+		resource.ReadResourceInfo(reader);
+
+		return true;
+	}
 }

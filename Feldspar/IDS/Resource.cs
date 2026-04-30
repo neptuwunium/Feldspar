@@ -9,25 +9,21 @@ using Pluto.IO.Binary;
 
 namespace Feldspar.IDS;
 
-public class Resource : IDisposable {
-	protected Resource(Resource other) {
-		Database = other.Database;
-		Header = other.Header;
-		ObjectData = other.ObjectData;
-		AddressInfo = other.AddressInfo;
-		Buffer = other.Buffer;
-		other.Dispose();
-	}
+public sealed class Resource : IDisposable {
+	private static readonly Type[] OBJECT_READER_CONSTRUCTOR_ARGS = [typeof(Resource), typeof(BufferBinaryReader)];
+	private static readonly Type[] OBJECT_CONSTRUCTOR_ARGS = [typeof(Resource)];
 
 	public Resource(ResourceDatabase database, StreamBinaryReader reader) {
 		Database = database;
 
 		var start = reader.Position;
-		ParseResourceInfo(reader);
+		ReadResourceInfo(reader);
 
 		var addressBuffer = (stackalloc byte[checked((int) Header.DiskSize)]);
 		reader.Read(addressBuffer);
-		AddressInfo = RDBAddressInfo.TryParse(addressBuffer, out var addressInfo) ? addressInfo : new RDBAddressInfo();
+		var info = RDBAddressInfo.TryParse(addressBuffer, out var addressInfo) ? addressInfo : new RDBAddressInfo();
+		info.RDBPosition = start;
+		AddressInfo = info;
 
 		reader.Position = start + checked((int) Header.Size);
 		reader.Align();
@@ -36,16 +32,17 @@ public class Resource : IDisposable {
 	public ResourceDatabase Database { get; }
 	public RDBIndexHeader Header { get; set; }
 	public RDBAddressInfo AddressInfo { get; set; }
-	public ResourceObject ObjectData { get; set; } = ResourceObject.Empty;
+	public ResourceObjectData ObjectData { get; set; } = ResourceObjectData.Empty;
+	public ResourceObject? Object { get; set; }
 	public RentedArray<byte> Buffer { get; set; } = RentedArray<byte>.Empty;
-	public bool IsLoaded => Buffer.Length > 0;
+	public bool IsLoaded => Buffer.Length > 0 || Header.MemorySize == 0;
 
 	public void Dispose() {
-		Dispose(true);
-		GC.SuppressFinalize(this);
+		Destroy();
+		ObjectData.Dispose();
 	}
 
-	public void ParseResourceInfo(StreamBinaryReader reader) {
+	public void ReadResourceInfo(StreamBinaryReader reader) {
 		Header = reader.Read<RDBIndexHeader>();
 
 		if (Header.PropertyCount > 0) {
@@ -58,34 +55,43 @@ public class Resource : IDisposable {
 			var properties = (stackalloc OBJProperty[Header.PropertyCount]);
 			reader.Read(properties);
 
-			ObjectData = new ResourceObject(properties, reader.Read<byte>(Header.PropertyValueSize));
+			ObjectData = new ResourceObjectData(properties, reader.Read<byte>(Header.PropertyValueSize));
 		} else {
 			Debug.Assert(Header.PropertyValueSize == 0, "properties data provided without properties");
 			reader.Position += Header.PropertyValueSize;
 		}
 	}
 
-	public virtual void Create() {
-		if (IsLoaded) {
-			return;
+	public bool Create() {
+		if (!Load()) {
+			return false;
 		}
 
-		Database.Read(this);
-	}
-
-	public virtual void Destroy() {
-		if (!IsLoaded) {
-			return;
+		if (!ObjectTypeRegistry.Types.TryGetValue(Header.TypeId, out var type)) {
+			return false;
 		}
 
-		Buffer.Dispose();
-		Buffer = RentedArray<byte>.Empty;
+		if (Buffer.Length > 0 && type.GetConstructor(OBJECT_READER_CONSTRUCTOR_ARGS) is { } readerConstructor) {
+			Object = (ResourceObject) readerConstructor.Invoke(null, [this, new ArrayPoolBinaryReader(Buffer, true)])!;
+		}
+
+		if (type.GetConstructor(OBJECT_CONSTRUCTOR_ARGS) is { } constructor) {
+			Object = (ResourceObject) constructor.Invoke(null, [this])!;
+		}
+
+		return Object != null;
 	}
 
-	protected virtual void Dispose(bool disposing) {
-		if (disposing) {
-			Destroy();
-			ObjectData.Dispose();
+	public bool Destroy() {
+		if (Object is { } obj) {
+			obj.Dispose();
+			Object = null;
 		}
+
+		return Unload();
 	}
+
+	public bool Load() => IsLoaded || Database.LoadResource(this);
+
+	public bool Unload() => IsLoaded && Database.UnloadResource(this);
 }

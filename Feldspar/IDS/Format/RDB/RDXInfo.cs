@@ -7,8 +7,6 @@ using System.Text;
 
 namespace Feldspar.IDS.Format.RDB;
 
-public delegate string RDXResolver(byte value);
-
 [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 0x8)]
 public readonly record struct RDXInfo(ushort Index = ushort.MaxValue, byte MountId = 0xFF, byte LanguageId = 0xFF, KTID FDataId = default) {
 	public static RDXResolver ResolveMount { get; set; } = DefaultResolveMount;
@@ -24,6 +22,10 @@ public readonly record struct RDXInfo(ushort Index = ushort.MaxValue, byte Mount
 	public static string DefaultResolveLanguage(byte value) => Language;
 
 	public override string ToString() {
+		if (!IsValid) {
+			return "<<invalid>>";
+		}
+
 		var name = $"0x{FDataId.Value:x8}.fdata";
 
 		if (!CanRemount) {

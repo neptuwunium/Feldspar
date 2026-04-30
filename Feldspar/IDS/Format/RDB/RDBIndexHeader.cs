@@ -17,6 +17,6 @@ public record struct RDBIndexHeader {
 	public KTID NameId { get; set; }
 	public KTID TypeId { get; set; }
 	public RDBResourceInfo Info { get; set; }
-	public KTID TypeInfoId { get; set; }
+	public KTID ObjectId { get; set; }
 	public int PropertyCount { get; set; }
 }

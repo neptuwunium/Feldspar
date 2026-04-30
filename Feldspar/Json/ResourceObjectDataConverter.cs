@@ -11,10 +11,10 @@ using Silk.NET.Maths;
 
 namespace Feldspar.Json;
 
-public class ResourceObjectConverter : JsonConverter<ResourceObject> {
-	public override ResourceObject Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => throw new NotImplementedException();
+public class ResourceObjectDataConverter : JsonConverter<ResourceObjectData> {
+	public override ResourceObjectData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => throw new NotImplementedException();
 
-	public override void Write(Utf8JsonWriter writer, ResourceObject value, JsonSerializerOptions options) {
+	public override void Write(Utf8JsonWriter writer, ResourceObjectData value, JsonSerializerOptions options) {
 		writer.WriteStartObject();
 
 		foreach (var (name, (prop, _, _)) in value.Properties) {
