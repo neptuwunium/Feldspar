@@ -15,6 +15,7 @@ Dictionary<KTID, string> foundTypeNames = [];
 Dictionary<KTID, string> foundPropNames = [];
 
 foreach (var rttiPath in new FileEnumerator(args[0], "*.jsonl")) {
+	Console.WriteLine($"[I] Loading {rttiPath}");
 	using var rtti = new RTTIEnumerator(rttiPath);
 
 	var dict = new Dictionary<KTID, TypeInfo>();
@@ -26,18 +27,20 @@ foreach (var rttiPath in new FileEnumerator(args[0], "*.jsonl")) {
 		var debugName = typeInfo.Name;
 		if (foundPropNames.TryGetValue(typeInfo.Hash.Value, out var existing)) {
 			if (!existing.Equals(typeInfo.Name, StringComparison.Ordinal)) {
-				Console.Error.WriteLine($"[E] Collision! {debugName} {typeInfo.Hash.Value:x08} is colliding with {existing}!");
+				Console.WriteLine($"[E] Collision! {debugName} {typeInfo.Hash.Value:x08} is colliding with {existing}!");
 			}
 		} else {
 			if (GenerateTypeName(typeInfo) is { } name) {
 				debugName = name;
 				var id = KTID.CreateKTID(name);
 				if (id != typeInfo.Hash) {
-					Console.Error.WriteLine($"[E] Mismatch! {debugName} expected {typeInfo.Hash.Value:x08}, got {id.Value:x08}");
+					Console.WriteLine($"[E] Mismatch! {debugName} expected {typeInfo.Hash.Value:x08}, got {id.Value:x08}");
+				} else {
+					foundTypeNames[typeInfo.Hash] = debugName;
 				}
+			} else {
+				foundTypeNames[typeInfo.Hash] = debugName;
 			}
-
-			foundTypeNames[typeInfo.Hash] = debugName;
 		}
 
 
@@ -47,12 +50,13 @@ foreach (var rttiPath in new FileEnumerator(args[0], "*.jsonl")) {
 					continue;
 				}
 
-				Console.Error.WriteLine($"[E] Collision! {debugName} property {prop.Name} {prop.Hash.Value:x08} is colliding with {existing}!");
+				Console.WriteLine($"[E] Collision! {debugName} property {prop.Name} {prop.Hash.Value:x08} is colliding with {existing}!");
 			}
 
 			var id = KTID.CreateKTID(prop.Name);
 			if (id != prop.Hash) {
-				Console.Error.WriteLine($"[E] Mismatch! {debugName} property {prop.Name} expected {prop.Hash.Value:x08}, got {id.Value:x08}");
+				Console.WriteLine($"[E] Mismatch! {debugName} property {prop.Name} expected {prop.Hash.Value:x08}, got {id.Value:x08}");
+				continue;
 			}
 
 			foundPropNames[prop.Hash] = prop.Name;
