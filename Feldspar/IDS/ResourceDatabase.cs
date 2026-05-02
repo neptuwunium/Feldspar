@@ -107,14 +107,15 @@ public sealed class ResourceDatabase : IDisposable {
 					continue;
 				}
 
-				if ((address.IndexFlags & RDXFlags.ExternalFile) != 0) {
-					if (address.Index.CanRemount) {
-						Mount(resource.Header.NameId, Path.Combine(BasePath, Path.GetDirectoryName(address.Index.ToString())!, ExternalPath, $"0x{resource.Header.NameId.Value:x08}.file"), force);
-					} else {
-						Mount(resource.Header.NameId, Path.Combine(BasePath, ExternalPath, $"0x{resource.Header.NameId.Value:x08}.file"), force);
-					}
-				} else {
+				if ((address.IndexFlags & RDXFlags.ExternalFile) == 0) {
 					Mount(address.Index.FDataId, Path.Combine(BasePath, address.Index.ToString()), force);
+				} else {
+					var filePath = address.Index.CanRemount ? Path.Combine(BasePath, Path.GetDirectoryName(address.Index.ToString())!) : BasePath;
+					filePath = Path.Combine(filePath, ExternalPath);
+					var name = $"0x{resource.Header.NameId.Value:x08}.file";
+					if (!Mount(resource.Header.NameId, Path.Combine(filePath, name), force)) {
+						Mount(resource.Header.NameId, Path.Combine(filePath, (resource.Header.NameId.Value & 0xff).ToString("x2"), name), force);
+					}
 				}
 			} else {
 				// muscle OR package variant
@@ -137,7 +138,10 @@ public sealed class ResourceDatabase : IDisposable {
 				} else {
 					// muscle variant
 					Debug.Assert(string.IsNullOrEmpty(address.ExternalPath));
-					Mount(resource.Header.NameId, Path.Combine(looseDir, $"0x{resource.Header.NameId.Value:x08}.file"), force);
+					var name = $"0x{resource.Header.NameId.Value:x08}.file";
+					if (!Mount(resource.Header.NameId, Path.Combine(looseDir, name), force)) {
+						Mount(resource.Header.NameId, Path.Combine(looseDir, (resource.Header.NameId.Value & 0xff).ToString("x2"), name), force);
+					}
 				}
 			}
 		}
@@ -168,10 +172,10 @@ public sealed class ResourceDatabase : IDisposable {
 		return resource.Header.NameId;
 	}
 
-	public void Mount(KTID id, string path, bool isMounting = false) {
+	public bool Mount(KTID id, string path, bool isMounting = false) {
 		if (Streams.TryGetValue(id, out var stream)) {
 			if (isMounting) {
-				return;
+				return true;
 			}
 
 			stream?.Dispose();
@@ -180,11 +184,12 @@ public sealed class ResourceDatabase : IDisposable {
 		if (!Path.Exists(path)) {
 			Log.Information("[rdb] cannot {Type} {Path} as it does not exist", isMounting ? "mount" : "remount", Path.GetRelativePath(BasePath, path));
 			Streams[id] = null;
-			return;
+			return false;
 		}
 
 		Log.Information("[rdb] {Type} {Path}", isMounting ? "mounting" : "remounting", Path.GetRelativePath(BasePath, path));
 		Streams[id] = MemoryMappedFile.CreateFromFile(path, FileMode.Open, null, 0, MemoryMappedFileAccess.Read);
+		return true;
 	}
 
 	public bool LoadResource(Resource resource) {
