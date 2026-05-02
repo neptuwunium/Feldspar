@@ -300,7 +300,7 @@ public sealed class ResourceDatabase : IDisposable {
 			return true;
 		}
 
-		using var reader = new StreamBinaryReader(stream.CreateViewStream(innerOffset, resource.Header.MemorySize, MemoryMappedFileAccess.Read));
+		using var reader = new StreamBinaryReader(stream.CreateViewStream(offset + innerOffset, resource.Header.DiskSize, MemoryMappedFileAccess.Read));
 
 		var buffer = new RentedArray<byte>(checked((int) resource.Header.MemorySize));
 		try {
