@@ -9,6 +9,7 @@ using System.Text;
 using Charon.Compression;
 using Feldspar.IDS.Format;
 using Feldspar.IDS.Format.RDB;
+using Feldspar.KTGL;
 using Pluto;
 using Pluto.IO.Binary;
 using Serilog;
@@ -16,6 +17,9 @@ using Serilog;
 namespace Feldspar.IDS;
 
 public sealed class ResourceDatabase : IDisposable {
+	// todo: move this to a file
+	private static readonly string[] KTGL_EXTRA_MOUNTS_BASE = ["@../../shader_@"];
+
 	public ResourceDatabase(string path, ResourceDatabaseManager manager) {
 		BasePath = Path.GetDirectoryName(path) ?? throw new InvalidOperationException();
 		Manager = manager;
@@ -27,6 +31,18 @@ public sealed class ResourceDatabase : IDisposable {
 		using var reader = new StreamBinaryReader(DatabaseStream.CreateViewStream(0, 0, MemoryMappedFileAccess.Read));
 		var header = reader.Read<RDBHeader>();
 		ExternalPath = reader.ReadCString<byte>(Encoding.UTF8, header.Size - Unsafe.SizeOf<RDBHeader>());
+
+		foreach (var tmp in KTGL_EXTRA_MOUNTS_BASE) {
+			var testPath = tmp;
+			if (testPath[0] == '@') {
+				testPath = testPath[1..].Replace("@", header.Platform.EngineName, StringComparison.Ordinal);
+			}
+
+			var target = Path.Combine(BasePath, ExternalPath, testPath);
+			if (Directory.Exists(target)) {
+				ExtraExternalPaths.Add(Path.Combine(ExternalPath, testPath));
+			}
+		}
 
 		var rdxPath = Path.ChangeExtension(path, "rdx");
 		if (File.Exists(rdxPath)) {
@@ -53,6 +69,19 @@ public sealed class ResourceDatabase : IDisposable {
 				Debug.Assert(resource.AddressInfo.Index.Index == realIndex);
 			}
 
+			// this is what Nioh3 does. sub_141563740 in demo.
+			if (resource.Header.TypeId == 0x7bcd279f && resource.Header.MemorySize == 0) {
+				// G1SFile
+				var info = resource.Header.Info;
+				info.Location = RDBLocationType.External;
+				resource.Header = resource.Header with {
+					Info = info,
+				};
+
+				// you know this is mildly frustrating since there's literally a mounting system
+				// just add mount 0 to be ../../shader_dx12????
+			}
+
 			Resources.Add(resource.Header.NameId, resource);
 		}
 
@@ -66,6 +95,7 @@ public sealed class ResourceDatabase : IDisposable {
 	public Dictionary<KTID, MemoryMappedFile?> Streams { get; } = [];
 	public string BasePath { get; }
 	public string ExternalPath { get; }
+	public List<string> ExtraExternalPaths { get; } = [];
 	public KTID Name { get; }
 
 	public void Dispose() {
@@ -88,8 +118,9 @@ public sealed class ResourceDatabase : IDisposable {
 	}
 
 	public void Remount(bool force = false) {
-		var looseDir = Path.Combine(BasePath, ExternalPath);
 		var myPath = Path.Combine(BasePath, Name + ".rdb.bin");
+		var loosePaths = new List<string> { Path.Combine(BasePath, ExternalPath) };
+		loosePaths.AddRange(ExtraExternalPaths.Select(path => Path.Combine(BasePath, path)));
 
 		foreach (var resource in Resources.Values) {
 			var address = resource.AddressInfo;
@@ -110,12 +141,7 @@ public sealed class ResourceDatabase : IDisposable {
 				if ((address.IndexFlags & RDXFlags.ExternalFile) == 0) {
 					Mount(address.Index.FDataId, Path.Combine(BasePath, address.Index.ToString()), force);
 				} else {
-					var filePath = address.Index.CanRemount ? Path.Combine(BasePath, Path.GetDirectoryName(address.Index.ToString())!) : BasePath;
-					filePath = Path.Combine(filePath, ExternalPath);
-					var name = $"0x{resource.Header.NameId.Value:x08}.file";
-					if (!Mount(resource.Header.NameId, Path.Combine(filePath, name), force)) {
-						Mount(resource.Header.NameId, Path.Combine(filePath, (resource.Header.NameId.Value & 0xff).ToString("x2"), name), force);
-					}
+					MountExternal(resource, address.Index.CanRemount ? Path.Combine(BasePath, Path.GetDirectoryName(address.Index.ToString())!) : BasePath);
 				}
 			} else {
 				// muscle OR package variant
@@ -133,19 +159,74 @@ public sealed class ResourceDatabase : IDisposable {
 					}
 
 					targetPath += address.Ext;
-
 					Mount(KTID.CreateKTID(Path.GetFileName(targetPath)), targetPath, force);
 				} else {
 					// muscle variant
 					Debug.Assert(string.IsNullOrEmpty(address.ExternalPath));
-					var name = $"0x{resource.Header.NameId.Value:x08}.file";
-					if (!Mount(resource.Header.NameId, Path.Combine(looseDir, name), force)) {
-						Mount(resource.Header.NameId, Path.Combine(looseDir, (resource.Header.NameId.Value & 0xff).ToString("x2"), name), force);
-					}
+					MountExternal(resource, BasePath);
+				}
+			}
+		}
+
+		return;
+
+		bool TryMountExternal(KTID nameId, string basePath) {
+			var name = $"0x{nameId.Value:x08}.file";
+			var shortId = (nameId.Value & 0xff).ToString("x2");
+			foreach (var looseDir in loosePaths) {
+				if (Mount(nameId, Path.Combine(basePath, looseDir, name), force)) {
+					return true;
+				}
+
+				if (Mount(nameId, Path.Combine(basePath, looseDir, shortId, name), force)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		void MountExternal(Resource resource, string basePath) {
+			if (TryMountExternal(resource.Header.NameId, basePath)) {
+				return;
+			}
+
+			// this is what Nioh3 does. sub_141563740 in demo.
+			// G1SFile
+			if (resource.Header.TypeId != 0x7bcd279f || resource.Header.MemorySize != 0) {
+				return;
+			}
+
+			var nameId = RemapResourceName(resource.Header.NameId);
+			if (nameId == resource.Header.NameId) {
+				return;
+			}
+
+			if (TryMountExternal(resource.Header.NameId, basePath)) {
+				return;
+			}
+
+			foreach (var looseDir in loosePaths) {
+				if (Mount(nameId, Path.Combine(basePath, looseDir, "PB2Unknown.file"), force)) {
+					break;
 				}
 			}
 		}
 	}
+
+	// what nioh3 does, see sub_140c84838 in demo
+	// todo: move this to a file that isn't hardcoded
+	private static KTID RemapResourceName(KTID nameId) =>
+		nameId.Value switch {
+			0x69b8cb0f => 0xf0608e3a,
+			0x23625bf7 => 0xac9ed13e,
+			0xaa99d41b => 0x460b392a,
+			0x347300be => 0x9c481f79,
+			0x58c2d622 => 0xf0ffd1c1,
+			0xf72fa41a => 0x8f6c9fb9,
+			0x154dbb99 or 0xc32701c9 or 0x3dc29f92 or 0x22b4c449 or 0x7dbd25cf or 0xe3c5d0a1 or 0x450a09c7 or 0x7ab3a93c => 0xec7b0597,
+			_ => nameId,
+		};
 
 	public KTID GetResourcePackage(Resource resource) {
 		var address = resource.AddressInfo;
@@ -208,8 +289,18 @@ public sealed class ResourceDatabase : IDisposable {
 			offset = 0;
 		}
 
-		using var reader = new StreamBinaryReader(stream.CreateViewStream(offset, resource.AddressInfo.Length, MemoryMappedFileAccess.Read));
-		resource.ReadResourceInfo(reader);
+		// re-read header, this is necessary because nioh3 gaslights the system
+		int innerOffset;
+		using (var tempReader = new StreamBinaryReader(stream.CreateViewStream(offset, resource.AddressInfo.Length, MemoryMappedFileAccess.Read))) {
+			resource.ReadResourceInfo(tempReader);
+			innerOffset = tempReader.Position;
+		}
+
+		if (resource.Header.MemorySize == 0) {
+			return true;
+		}
+
+		using var reader = new StreamBinaryReader(stream.CreateViewStream(innerOffset, resource.Header.MemorySize, MemoryMappedFileAccess.Read));
 
 		var buffer = new RentedArray<byte>(checked((int) resource.Header.MemorySize));
 		try {
