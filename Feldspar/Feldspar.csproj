@@ -28,4 +28,9 @@ SPDX-License-Identifier: EUPL-1.2
 		<PackageReference Include="Silk.NET.Maths" Version="2.23.0"/>
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Remove="Resources\**\*.ktid"/>
+		<EmbeddedResource Include="Resources\**\*.ktid"/>
+	</ItemGroup>
+
 </Project>

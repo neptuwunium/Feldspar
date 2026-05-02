@@ -5,14 +5,15 @@ SPDX-License-Identifier: EUPL-1.2
 -->
 
 <Solution>
-  <Folder Name="/Libraries/">
-    <Project Path="Libraries/Neptune/Pluto.SourceGen/Pluto.SourceGen.csproj" />
-    <Project Path="Libraries/Neptune/Pluto/Pluto.csproj" />
-    <Project Path="Libraries/Neptune/Charon/Charon.csproj" />
-    <Project Path="Libraries/Neptune/Ceres/Ceres.csproj" />
-    <Project Path="Libraries/Neptune/Triton/Triton.csproj" />
-    <Project Path="Libraries/BCDecNet/BCDecNet/BCDecNet.csproj" />
-  </Folder>
-  <Project Path="Feldspar/Feldspar.csproj" />
-  <Project Path="Mica/Mica.csproj" />
+	<Folder Name="/Libraries/">
+		<Project Path="Libraries/Neptune/Pluto.SourceGen/Pluto.SourceGen.csproj"/>
+		<Project Path="Libraries/Neptune/Pluto/Pluto.csproj"/>
+		<Project Path="Libraries/Neptune/Charon/Charon.csproj"/>
+		<Project Path="Libraries/Neptune/Ceres/Ceres.csproj"/>
+		<Project Path="Libraries/Neptune/Triton/Triton.csproj"/>
+		<Project Path="Libraries/BCDecNet/BCDecNet/BCDecNet.csproj"/>
+	</Folder>
+	<Project Path="Feldspar/Feldspar.csproj"/>
+	<Project Path="Mica/Mica.csproj"/>
+	<Project Path="Moonstone/Moonstone.csproj"/>
 </Solution>

@@ -3,11 +3,13 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Text;
+using System.Text.Json.Serialization;
+using Feldspar.Json;
 using Pluto.SourceGen.TransparentStructGenerator;
 
 namespace Feldspar.IDS.Format;
 
-[TransparentStruct<uint>]
+[TransparentStruct<uint>, JsonConverter(typeof(KTIDConverter))]
 public partial struct KTID {
 	public KTID(string text) => this = CreateKTID(text);
 
@@ -33,7 +35,7 @@ public partial struct KTID {
 
 		var stack = (stackalloc byte[Encoding.UTF8.GetByteCount(text)]);
 		var n = Encoding.UTF8.GetBytes(text, stack);
-		var id = CreateKTID(stack[..n], stack[0] * 0x1f);
+		var id = CreateKTID(stack[1..n], stack[0] * 0x1f);
 		KTIDRegistry.Register(text, id);
 		return id;
 	}
@@ -71,7 +73,7 @@ public partial struct KTID {
 		return hash;
 	}
 
-	public override string ToString() => !IsValid ? "null" : KTIDRegistry.Lookup.TryGetValue(Value, out var text) ? text : Value.ToString("x8");
+	public override string ToString() => !IsValid ? "null" : KTIDRegistry.Lookup.TryGetValue(Value, out var text) ? text : $"@0x{Value:x08}";
 	public static implicit operator KTID(string value) => new(value);
 
 	public bool IsValid => Value != 0;

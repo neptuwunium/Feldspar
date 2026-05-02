@@ -7,13 +7,16 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using Feldspar.IDS.Format;
 using Feldspar.IDS.Format.OBJ;
+using Feldspar.Json;
 using JetBrains.Annotations;
 using Pluto.IO.Binary;
 
 namespace Feldspar.IDS;
 
+[JsonConverter(typeof(ResourceObjectDataConverter))]
 public sealed class ResourceObjectData : IDisposable {
 	public ResourceObjectData() => Data = RentedArray<byte>.Empty;
 
