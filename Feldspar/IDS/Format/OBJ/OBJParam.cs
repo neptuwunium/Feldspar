@@ -7,4 +7,4 @@ using System.Runtime.InteropServices;
 namespace Feldspar.IDS.Format.OBJ;
 
 [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 0xC)]
-public record struct OBJProperty(OBJPropertyType Type, int Count, KTID Name);
+public record struct OBJParam(OBJParamType Type, int Count, KTID Name);

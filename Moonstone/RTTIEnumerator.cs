@@ -13,8 +13,8 @@ namespace Moonstone;
 public record TypePropertyInfo {
 	public int Count { get; set; }
 
-	[JsonConverter(typeof(JsonStringEnumConverter<OBJPropertyType>))]
-	public OBJPropertyType Type { get; set; }
+	[JsonConverter(typeof(JsonStringEnumConverter<OBJParamType>))]
+	public OBJParamType Type { get; set; }
 
 	public string Name { get; set; } = "Unknown";
 	public KTID Hash { get; set; }

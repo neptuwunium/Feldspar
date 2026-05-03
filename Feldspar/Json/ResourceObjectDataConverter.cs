@@ -17,34 +17,34 @@ public class ResourceObjectDataConverter : JsonConverter<ResourceObjectData> {
 	public override void Write(Utf8JsonWriter writer, ResourceObjectData value, JsonSerializerOptions options) {
 		writer.WriteStartObject();
 
-		foreach (var (name, (prop, _, _)) in value.Properties) {
+		foreach (var (name, (param, _, _)) in value.Parameters) {
 			writer.WritePropertyName(name.ToString());
 
-			if (prop.Count == 0 || prop.Type == OBJPropertyType.None) {
+			if (param.Count == 0 || param.Type == OBJParamType.None) {
 				writer.WriteNullValue();
 				continue;
 			}
 
-			var values = prop.Type switch {
-				OBJPropertyType.Bool => value.ReadProperties<bool>(name).Cast<object>(),
-				OBJPropertyType.Byte => value.ReadProperties<byte>(name).Cast<object>(),
-				OBJPropertyType.Int16 => value.ReadProperties<short>(name).Cast<object>(),
-				OBJPropertyType.UInt16 => value.ReadProperties<ushort>(name).Cast<object>(),
-				OBJPropertyType.Int32 => value.ReadProperties<int>(name).Cast<object>(),
-				OBJPropertyType.UInt32 => value.ReadProperties<uint>(name).Cast<object>(),
-				OBJPropertyType.Int64 => value.ReadProperties<long>(name).Cast<object>(),
-				OBJPropertyType.UInt64 => value.ReadProperties<ulong>(name).Cast<object>(),
-				OBJPropertyType.Float32 => value.ReadProperties<float>(name).Cast<object>(),
-				OBJPropertyType.Float64 => value.ReadProperties<double>(name).Cast<object>(),
-				OBJPropertyType.Vector4F => value.ReadProperties<Vector4D<float>>(name).Cast<object>(),
-				OBJPropertyType.Matrix4F => value.ReadProperties<Matrix4X4<float>>(name).Cast<object>(),
-				OBJPropertyType.Vector2F => value.ReadProperties<Vector4D<float>>(name).Cast<object>(),
-				OBJPropertyType.Vector3F => value.ReadProperties<Vector3D<float>>(name).Cast<object>(),
-				OBJPropertyType.None => throw new UnreachableException(),
+			var values = param.Type switch {
+				OBJParamType.Bool => value.ReadParams<bool>(name).Cast<object>(),
+				OBJParamType.Byte => value.ReadParams<byte>(name).Cast<object>(),
+				OBJParamType.Int16 => value.ReadParams<short>(name).Cast<object>(),
+				OBJParamType.UInt16 => value.ReadParams<ushort>(name).Cast<object>(),
+				OBJParamType.Int32 => value.ReadParams<int>(name).Cast<object>(),
+				OBJParamType.UInt32 => value.ReadParams<uint>(name).Cast<object>(),
+				OBJParamType.Int64 => value.ReadParams<long>(name).Cast<object>(),
+				OBJParamType.UInt64 => value.ReadParams<ulong>(name).Cast<object>(),
+				OBJParamType.Float32 => value.ReadParams<float>(name).Cast<object>(),
+				OBJParamType.Float64 => value.ReadParams<double>(name).Cast<object>(),
+				OBJParamType.Vector4F => value.ReadParams<Vector4D<float>>(name).Cast<object>(),
+				OBJParamType.Matrix4F => value.ReadParams<Matrix4X4<float>>(name).Cast<object>(),
+				OBJParamType.Vector2F => value.ReadParams<Vector4D<float>>(name).Cast<object>(),
+				OBJParamType.Vector3F => value.ReadParams<Vector3D<float>>(name).Cast<object>(),
+				OBJParamType.None => throw new UnreachableException(),
 				_ => throw new UnreachableException(),
 			};
 
-			if (prop.Count > 1) {
+			if (param.Count > 1) {
 				writer.WriteStartArray();
 			}
 
@@ -54,7 +54,7 @@ public class ResourceObjectDataConverter : JsonConverter<ResourceObjectData> {
 				JsonSerializer.Serialize(writer, v, options);
 			}
 
-			if (prop.Count > 1) {
+			if (param.Count > 1) {
 				writer.WriteEndArray();
 			} else if (!wroteAtAll) {
 				writer.WriteNullValue();

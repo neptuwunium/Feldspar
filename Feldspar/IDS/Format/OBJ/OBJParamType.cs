@@ -4,7 +4,7 @@
 
 namespace Feldspar.IDS.Format.OBJ;
 
-public enum OBJPropertyType : uint {
+public enum OBJParamType : uint {
 	Bool,
 	Byte,
 	Int16,

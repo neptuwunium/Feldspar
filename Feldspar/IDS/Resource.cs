@@ -46,20 +46,20 @@ public sealed class Resource : IDisposable {
 	public void ReadResourceInfo(StreamBinaryReader reader) {
 		Header = reader.Read<RDBIndexHeader>();
 
-		if (Header.PropertyCount > 0) {
-			Debug.Assert(Header.PropertyValueSize > 0, "properties provided without data");
+		if (Header.ParamHeaderCount > 0) {
+			Debug.Assert(Header.ParamDataSize > 0, "properties provided without data");
 
 			if (!ObjectData.IsEmpty) {
 				ObjectData.Dispose();
 			}
 
-			var properties = (stackalloc OBJProperty[Header.PropertyCount]);
-			reader.Read(properties);
+			var parameters = (stackalloc OBJParam[Header.ParamHeaderCount]);
+			reader.Read(parameters);
 
-			ObjectData = new ResourceObjectData(properties, reader.Read<byte>(Header.PropertyValueSize));
+			ObjectData = new ResourceObjectData(parameters, reader.Read<byte>(Header.ParamDataSize));
 		} else {
-			Debug.Assert(Header.PropertyValueSize == 0, "properties data provided without properties");
-			reader.Position += Header.PropertyValueSize;
+			Debug.Assert(Header.ParamDataSize == 0, "properties data provided without properties");
+			reader.Position += Header.ParamDataSize;
 		}
 	}
 

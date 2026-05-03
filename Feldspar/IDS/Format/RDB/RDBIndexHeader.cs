@@ -13,10 +13,10 @@ public record struct RDBIndexHeader {
 	public long Size { get; set; }
 	public long DiskSize { get; set; }
 	public long MemorySize { get; set; }
-	public int PropertyValueSize { get; set; }
+	public int ParamDataSize { get; set; }
 	public KTID NameId { get; set; }
 	public KTID TypeId { get; set; }
 	public RDBResourceInfo Info { get; set; }
-	public KTID ObjectId { get; set; }
-	public int PropertyCount { get; set; }
+	public KTID ResourceId { get; set; }
+	public int ParamHeaderCount { get; set; }
 }
