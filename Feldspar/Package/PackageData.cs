@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Diagnostics;
+using Feldspar.IDS;
+using Feldspar.IDS.Format;
 using Feldspar.KTGL;
 using Feldspar.Package.Format;
 using Pluto;
@@ -18,6 +20,7 @@ public sealed class PackageData : IDisposable {
 
 		using var ds = ReadDataSystem(reader, out var header);
 		Header = header;
+		Name = resourceName;
 
 		Resources.Clear();
 
@@ -71,12 +74,14 @@ public sealed class PackageData : IDisposable {
 						EntryCount = ds.Read<int>();
 					}
 
-					reader.Position = header.Size;
-					Span<int> info = stackalloc int[EntryCount * 2];
-					reader.Read(info);
+					if (EntryCount > 0) {
+						reader.Position = header.Size;
+						Span<int> info = stackalloc int[EntryCount * 2];
+						reader.Read(info);
 
-					for (var index = 0; index < EntryCount * 2; index += 2) {
-						Resources.Add(new UnownedRentedArray<byte>(Buffer, info[index] + header.Size, info[index + 1]));
+						for (var index = 0; index < EntryCount * 2; index += 2) {
+							Resources.Add(new UnownedRentedArray<byte>(Buffer, info[index] + header.Size, info[index + 1]));
+						}
 					}
 				}
 
@@ -120,6 +125,12 @@ public sealed class PackageData : IDisposable {
 		if (NameLookup.Count == 0 && Resources.Count == 1) {
 			NameLookup[Path.GetFileNameWithoutExtension(resourceName) + ResourceMagic.ToExt(Resources[0])] = 0;
 		}
+
+		foreach (var (name, id) in NameLookup) {
+			IdLookup[id] = name;
+		}
+
+		Instances.AddRange(Enumerable.Repeat(default(Resource), EntryCount));
 	}
 
 	public PackageDataHeader Header { get; }
@@ -128,9 +139,12 @@ public sealed class PackageData : IDisposable {
 	public PackageDataEntryMap? EntryMap { get; set; }
 	public int EntryCount { get; set; }
 	public bool LeaveOpen { get; }
+	public string Name { get; set; }
 	public IRentedArray<byte> Buffer { get; }
 	public List<IRentedArray<byte>> Resources { get; private set; } = ObjectPool<List<IRentedArray<byte>>>.Rent();
 	public Dictionary<string, int> NameLookup { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public Dictionary<int, string> IdLookup { get; } = new();
+	public List<Resource?> Instances { get; } = [];
 
 	public void Dispose() {
 		foreach (var entry in Resources) {
@@ -140,11 +154,39 @@ public sealed class PackageData : IDisposable {
 		ObjectPool<List<IRentedArray<byte>>>.Return(Resources);
 		Resources = null!;
 
+		foreach (var instance in Instances) {
+			instance?.Dispose();
+		}
+
 		if (LeaveOpen) {
 			return;
 		}
 
 		Buffer.Dispose();
+	}
+
+	public Resource? CreateResource(string name, KTID type = default, KTID resourceId = default) => !NameLookup.TryGetValue(name, out var id) ? null : CreateResource(id, name, type, resourceId);
+
+	public Resource? CreateResource(int index, string? name = null, KTID type = default, KTID resourceId = default) {
+		if (index > EntryCount) {
+			return null;
+		}
+
+		if (Instances[index] is { } instance) {
+			return instance;
+		}
+
+		var resource = Resources[index];
+		var typeId = ResourceMagic.ToTypeInfo(resource);
+		if (typeId == default) {
+			return null;
+		}
+
+		if (name == null && !IdLookup.TryGetValue(index, out name)) {
+			name = index == 0 ? Name : $"{Name}::{index}";
+		}
+
+		return Instances[index] = new Resource(typeId, name, resource, resourceId, true);
 	}
 
 	public static ArrayPoolBinaryReader ReadDataSystem(BufferBinaryReader reader, out PackageDataHeader header) {

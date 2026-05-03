@@ -32,7 +32,7 @@ public sealed class Resource : IDisposable {
 		reader.Align();
 	}
 
-	public Resource(KTID typeId, KTID nameId, RentedArray<byte> buffer, KTID resourceId = default) {
+	public Resource(KTID typeId, KTID nameId, IRentedArray<byte> buffer, KTID resourceId = default, bool leaveOpen = false) {
 		Header = new RDBIndexHeader {
 			Header = new ResourceHeader(ResourceMagic.ResourceDatabaseIndex, new ResourceVersion("0000"u8)),
 			Size = buffer.Length + Unsafe.SizeOf<RDBIndexHeader>(),
@@ -45,6 +45,7 @@ public sealed class Resource : IDisposable {
 		};
 		AddressInfo = RDBAddressInfo.Default;
 		Buffer = buffer;
+		LeaveOpen = leaveOpen;
 	}
 
 	public ResourceDatabase? Database { get; }
@@ -52,7 +53,8 @@ public sealed class Resource : IDisposable {
 	public RDBAddressInfo AddressInfo { get; set; }
 	public ResourceObjectData ObjectData { get; set; } = ResourceObjectData.Empty;
 	public ResourceObject? Object { get; set; }
-	public RentedArray<byte> Buffer { get; set; } = RentedArray<byte>.Empty;
+	public IRentedArray<byte> Buffer { get; set; } = RentedArray<byte>.Empty;
+	public bool LeaveOpen { get; }
 	public bool IsLoaded => Buffer.Length > 0 || Header.MemorySize == 0;
 	public bool IsVirtual => Header.Info.IsVirtual;
 
@@ -61,7 +63,7 @@ public sealed class Resource : IDisposable {
 		ObjectData.Dispose();
 		Object?.Dispose();
 
-		if (!IsVirtual) {
+		if (!IsVirtual || LeaveOpen) {
 			return;
 		}
 

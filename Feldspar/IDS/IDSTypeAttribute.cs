@@ -8,9 +8,8 @@ namespace Feldspar.IDS;
 
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class IDSTypeAttribute : Attribute {
-	public IDSTypeAttribute(uint hash) => Hash = hash;
+	public IDSTypeAttribute(uint typeId) => TypeInfoId = typeId;
+	public IDSTypeAttribute(string name) => TypeInfoId = KTID.CreateKTID(name);
 
-	public IDSTypeAttribute(string name) => Hash = KTID.CreateHash(name);
-
-	public uint Hash { get; }
+	public KTID TypeInfoId { get; }
 }

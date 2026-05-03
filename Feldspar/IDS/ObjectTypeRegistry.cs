@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Reflection;
+using Feldspar.IDS.Format;
 
 namespace Feldspar.IDS;
 
@@ -15,11 +16,11 @@ public static class ObjectTypeRegistry {
 				continue;
 			}
 
-			if (type.GetCustomAttribute<IDSTypeAttribute>() is not { } idsType || idsType.Hash == 0) {
+			if (type.GetCustomAttribute<IDSTypeAttribute>() is not { } idsType || !idsType.TypeInfoId.IsValid) {
 				continue;
 			}
 
-			Types[idsType.Hash] = type;
+			Types[idsType.TypeInfoId] = type;
 		}
 	}
 

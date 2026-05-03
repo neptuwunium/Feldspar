@@ -6,7 +6,7 @@ using Pluto.IO.Binary;
 
 namespace Feldspar.IDS.Objects;
 
-[IDSType(0)] // todo
+[IDSType("TypeInfo::Resource::System::NameDatabaseFile")] // todo
 public class NameDatabase : ResourceObject {
 	public NameDatabase(Resource resource, BufferBinaryReader reader) : base(resource) { }
 }

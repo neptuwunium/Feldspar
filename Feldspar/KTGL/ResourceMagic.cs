@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Runtime.InteropServices;
+using Feldspar.IDS.Format;
 using Pluto.IO.Binary;
 using Pluto.SourceGen.MagicGenerator;
 
@@ -19,9 +20,9 @@ namespace Feldspar.KTGL;
 [Magic("G1H_", "HeadMorph", "g1h")]
 [Magic("G1TG", "TextureGroup", "g1t")]
 [Magic("G1VS", "VideoSource", "g1v")]
-[Magic("G1SC", "SceneCreator", "g1v")]
+[Magic("G1SC", "SceneCreator", "g1sc")]
 [Magic("G1CO", "Collision", "g1c")]
-[Magic("G1EM", "EffectModel", "g1e")]
+[Magic("G1EM", "EffectMesh", "g1e")]
 [Magic("G1FX", "Effect", "g1fx")]
 [Magic("SWGQ", "Swing", "swg", false)]
 [Magic("ecb", "ExcelBinaryData", "ecb", false)]
@@ -40,7 +41,30 @@ namespace Feldspar.KTGL;
 [Magic("KOVS", "OggVorbisSound", "kvs", false)]
 [Magic("KSCL", "ScreenLayout", "kscl")]
 [Magic("KSLT", "ScreenLayoutTexture", "kslt")]
+[Magic("RIGB", "RigBin", "rigb")]
 public readonly partial record struct ResourceMagic {
+	public KTID TypeInfo => Value switch {
+		Model => "TypeInfo::Resource::KTGL::G1MFile",
+		Animation => "TypeInfo::Resource::KTGL::G1AFile",
+		Animation2 => "TypeInfo::Resource::KTGL::G2AFile",
+		Shader => "TypeInfo::Resource::KTGL::G1SFile",
+		Shader2 => "TypeInfo::Resource::KTGL::G2SFile",
+		Font => "TypeInfo::Resource::KTGL::G1NFile",
+		HeadMorph => "TypeInfo::Resource::KTGL::G1HFile",
+		TextureGroup => "TypeInfo::Resource::KTGL::TexContext",
+		Collision => "TypeInfo::Resource::KTGL::G1COFile",
+		EffectMesh => "TypeInfo::Resource::KTGL::EffectMeshData",
+		Effect => "TypeInfo::Resource::KTGL::EffectData",
+		Swing => "TypeInfo::Resource::KTGL::SwingData",
+		ResourceDatabase => "TypeInfo::Resource::System::ResourceDatabaseFile",
+		ResourceNameDatabase => "TypeInfo::Resource::System::NameDatabaseFile",
+		ObjectDatabase => "TypeInfo::Resource::System::ObjectDatabaseFile",
+		ScreenLayout => "TypeInfo::Resource::KTGL::KSCLFile",
+		RigBin => "TypeInfo::Resource::KTGL::RigBinFile",
+		_ => throw new NotSupportedException(),
+	};
+
 	public static ResourceMagic FromResource(IRentedArray<byte> resource) => MemoryMarshal.Read<ResourceMagic>(resource.Span);
 	public static string ToExt(IRentedArray<byte> resource) => FromResource(resource).Ext;
+	public static KTID ToTypeInfo(IRentedArray<byte> resource) => FromResource(resource).TypeInfo;
 }

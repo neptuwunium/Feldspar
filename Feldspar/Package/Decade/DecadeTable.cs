@@ -54,8 +54,6 @@ public class DecadeTable {
 				DecadeCipher.Crypt(block.Span, lookup.Info.MemorySize, DecadeKeyRing.Decade);
 			}
 
-			File.WriteAllBytes("test.bin", block.Span);
-
 			if ((lookup.Info.Flags & DecadeFlags.Compressed) == 0) {
 				return block;
 			}
