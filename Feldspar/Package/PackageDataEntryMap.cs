@@ -31,6 +31,7 @@ public class PackageDataEntryMap : PackageDataDataSearch {
 			MaterialResourceId = reader.Read<int>();
 		}
 
+		// ReSharper disable once InvertIf
 		if (Entries.TryGetValue(PDSKeyRegistry.ModelResourceId, out offset) && offset.Offset > 0) {
 			reader.Position = offset.Offset;
 			ModelResourceId = reader.Read<int>();

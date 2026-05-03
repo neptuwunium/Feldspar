@@ -27,4 +27,5 @@ SPDX-License-Identifier: EUPL-1.2
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=RVL/@EntryIndexedValue">RVL</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=XBO/@EntryIndexedValue">XBO</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=XSX/@EntryIndexedValue">XSX</s:String>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Dissidia/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Dissidia/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=eupl/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

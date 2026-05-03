@@ -141,7 +141,7 @@ public sealed class ResourceDatabase : IDisposable {
 				if ((address.IndexFlags & RDXFlags.ExternalFile) == 0) {
 					Mount(address.Index.FDataId, Path.Combine(BasePath, address.Index.ToString()), force);
 				} else {
-					MountExternal(resource, address.Index.CanRemount ? Path.Combine(BasePath, Path.GetDirectoryName(address.Index.ToString())!) : BasePath);
+					MountExternal(resource, address.Index.CanRemount ? Path.Combine(BasePath, Path.GetDirectoryName(address.Index.ToString())!) : BasePath, loosePaths, force);
 				}
 			} else {
 				// muscle OR package variant
@@ -163,65 +163,66 @@ public sealed class ResourceDatabase : IDisposable {
 				} else {
 					// muscle variant
 					Debug.Assert(string.IsNullOrEmpty(address.ExternalPath));
-					MountExternal(resource, BasePath);
+					MountExternal(resource, BasePath, loosePaths, force);
 				}
 			}
 		}
+	}
 
-		return;
-
-		bool TryMountExternal(KTID nameId, KTID targetId, string basePath) {
-			var name = $"0x{nameId.Value:x08}.file";
-			var shortId = (nameId.Value & 0xff).ToString("x2");
-			foreach (var looseDir in loosePaths) {
-				if (Mount(targetId, Path.Combine(basePath, looseDir, name), force)) {
-					return true;
-				}
-
-				if (Mount(targetId, Path.Combine(basePath, looseDir, shortId, name), force)) {
-					return true;
-				}
+	private bool TryMountExternal(KTID nameId, KTID targetId, string basePath, List<string> loosePaths, bool force) {
+		var name = $"0x{nameId.Value:x08}.file";
+		var shortId = (nameId.Value & 0xff).ToString("x2");
+		foreach (var looseDir in loosePaths) {
+			if (Mount(targetId, Path.Combine(basePath, looseDir, name), force)) {
+				return true;
 			}
 
+			if (Mount(targetId, Path.Combine(basePath, looseDir, shortId, name), force)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void MountExternal(Resource resource, string basePath, List<string> loosePaths, bool force) {
+		if (TryMountExternal(resource.Header.NameId, resource.Header.NameId, basePath, loosePaths, force)) {
+			return;
+		}
+
+		if (resource.Header.MemorySize != 0) {
+			return;
+		}
+
+		// this is what Nioh3 does. sub_141563740 in demo.
+		// G1SFile
+		var isG1S = resource.Header.TypeId == 0x7bcd279f;
+		if (MountRemappedResource(resource, basePath, isG1S ? ResourceRemapping.Shader : ResourceRemapping.Resource, loosePaths, force)) {
+			return;
+		}
+
+		if (!isG1S) {
+			return;
+		}
+
+		// ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+		foreach (var looseDir in loosePaths) {
+			if (Mount(resource.Header.NameId, Path.Combine(basePath, looseDir, "PB2Unknown.file"), force)) {
+				break;
+			}
+		}
+	}
+
+	private bool MountRemappedResource(Resource resource, string basePath, Dictionary<KTID, KTID> remap, List<string> loosePaths, bool force) {
+		if (!remap.TryGetValue(resource.Header.NameId, out var nameId)) {
 			return false;
 		}
 
-		void MountExternal(Resource resource, string basePath) {
-			if (TryMountExternal(resource.Header.NameId, resource.Header.NameId, basePath)) {
-				return;
-			}
-
-			if (resource.Header.MemorySize == 0) {
-				// this is what Nioh3 does. sub_141563740 in demo.
-				// G1SFile
-				var isG1S = resource.Header.TypeId == 0x7bcd279f;
-				if (MountRemappedResource(resource, basePath, isG1S ? ResourceRemapping.Shader : ResourceRemapping.Resource)) {
-					return;
-				}
-
-				if (!isG1S) {
-					return;
-				}
-
-				foreach (var looseDir in loosePaths) {
-					if (Mount(resource.Header.NameId, Path.Combine(basePath, looseDir, "PB2Unknown.file"), force)) {
-						break;
-					}
-				}
-			}
+		if (nameId == resource.Header.NameId || nameId == default) {
+			return false;
 		}
 
-		bool MountRemappedResource(Resource resource, string basePath, Dictionary<KTID, KTID> remap) {
-			if (!remap.TryGetValue(resource.Header.NameId, out var nameId)) {
-				return false;
-			}
-
-			if (nameId == resource.Header.NameId || nameId == default) {
-				return false;
-			}
-
-			return TryMountExternal(nameId, resource.Header.NameId, basePath);
-		}
+		return TryMountExternal(nameId, resource.Header.NameId, basePath, loosePaths, force);
 	}
 
 	public KTID GetResourcePackage(Resource resource) {
@@ -234,19 +235,19 @@ public sealed class ResourceDatabase : IDisposable {
 			return (address.IndexFlags & RDXFlags.ExternalFile) != 0 ? resource.Header.NameId : address.Index.FDataId;
 		}
 
-		if (resource.Header.Info.Location != RDBLocationType.External) {
-			var targetPath = Path.Combine(BasePath, Name + ".rdb.bin");
-
-			if (!string.IsNullOrEmpty(address.ExternalPath)) {
-				targetPath = address.ExternalPath;
-			}
-
-			targetPath += address.Ext;
-
-			return KTID.CreateKTID(Path.GetFileName(targetPath));
+		if (resource.Header.Info.Location == RDBLocationType.External) {
+			return resource.Header.NameId;
 		}
 
-		return resource.Header.NameId;
+		var targetPath = Path.Combine(BasePath, Name + ".rdb.bin");
+
+		if (!string.IsNullOrEmpty(address.ExternalPath)) {
+			targetPath = address.ExternalPath;
+		}
+
+		targetPath += address.Ext;
+
+		return KTID.CreateKTID(Path.GetFileName(targetPath));
 	}
 
 	public bool Mount(KTID id, string path, bool isMounting = false) {

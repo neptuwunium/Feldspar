@@ -68,7 +68,7 @@ public sealed class MuscleBinFile : IDisposable {
 
 		using var view = MemoryMappedFile.CreateViewStream(info.Offset, readSize, MemoryMappedFileAccess.Read);
 
-		if (!info.IsEncrypted && !info.IsCompressed) {
+		if (info is { IsEncrypted: false, IsCompressed: false }) {
 			view.ReadExactly(result.Span);
 			return result;
 		}

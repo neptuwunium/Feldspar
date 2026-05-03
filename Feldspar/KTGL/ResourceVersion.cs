@@ -27,10 +27,10 @@ public struct ResourceVersion : IEquatable<ResourceVersion>, IComparable<Resourc
 			(this[2] - 0x30) * 100 +
 			(this[3] - 0x30) * 1000;
 		set {
-			this[0] = (byte)(value % 10 + 0x30);
-			this[1] = (byte)(value / 10 % 10 + 0x30);
-			this[2] = (byte)(value / 100 % 10 + 0x30);
-			this[3] = (byte)(value / 1000 % 10 + 0x30);
+			this[0] = (byte) (value % 10 + 0x30);
+			this[1] = (byte) (value / 10 % 10 + 0x30);
+			this[2] = (byte) (value / 100 % 10 + 0x30);
+			this[3] = (byte) (value / 1000 % 10 + 0x30);
 		}
 	}
 

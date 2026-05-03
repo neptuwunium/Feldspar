@@ -59,8 +59,12 @@ public class PackageDataDataSearch {
 			}
 
 			var adj = reader.Read<uint>();
+			if (adj > 0xFFFFFF) {
+				return (0, 0);
+			}
+
 			// global type instance but funky
-			if (adj <= 0xFFFFFF) {
+			{
 				if ((entry.Flags & 0x10000000) != 0) {
 					adj >>= 2;
 				}
@@ -69,8 +73,6 @@ public class PackageDataDataSearch {
 				reader.Position = Header.ValueOffset + 8;
 				return (reader.Read<int>() + offset, mask);
 			}
-
-			return (0, 0);
 		}
 	}
 

@@ -12,15 +12,16 @@ namespace Feldspar.IDS.Format.RDB;
 
 // game defaults BinSubIndex to 0xF. BinIndex cannot be more than 0xFFF
 public record struct RDBAddressInfo(long Offset, long Length, int BinIndex = -1, int BinSubIndex = -1, string? ExternalPath = null, RDXInfo Index = new()) {
-	public RDBAddressInfo() : this(0, 0) { }
-	public static RDBAddressInfo Default => new();
-
 	private const int OFFSET_IDX = 0;
 	private const int LENGTH_IDX = 1;
 	private const int BIN_IDX_IDX = 2;
 	private const int BIN_SUBIDX_IDX = 3;
 	private const int EXT_PATH_IDX = 4;
 	private const int MAX_IDX = 5;
+
+	public RDBAddressInfo() : this(0, 0) { }
+
+	public static RDBAddressInfo Default => new();
 	private static ReadOnlySpan<byte> Identifiers => "@#&?\0"u8;
 
 	public long RDBPosition { get; set; }

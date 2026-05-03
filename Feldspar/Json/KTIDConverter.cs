@@ -10,17 +10,12 @@ using Feldspar.IDS.Format;
 namespace Feldspar.Json;
 
 public class KTIDConverter : JsonConverter<KTID> {
-	public override KTID Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
-		if (reader.TokenType == JsonTokenType.Number) {
-			return reader.GetUInt32();
-		}
-
-		if (reader.TokenType == JsonTokenType.String && reader.GetString() is { } str) {
-			return str;
-		}
-
-		return default;
-	}
+	public override KTID Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+		reader.TokenType switch {
+			JsonTokenType.Number => reader.GetUInt32(),
+			JsonTokenType.String when reader.GetString() is { } str => str,
+			_ => default,
+		};
 
 	public override void Write(Utf8JsonWriter writer, KTID value, JsonSerializerOptions options) {
 		if (value == default) {

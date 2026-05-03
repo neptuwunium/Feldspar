@@ -61,10 +61,12 @@ public sealed class Resource : IDisposable {
 		ObjectData.Dispose();
 		Object?.Dispose();
 
-		if (IsVirtual) {
-			Buffer.Dispose();
-			Buffer = RentedArray<byte>.Empty;
+		if (!IsVirtual) {
+			return;
 		}
+
+		Buffer.Dispose();
+		Buffer = RentedArray<byte>.Empty;
 	}
 
 	public void ReadResourceInfo(StreamBinaryReader reader) {
@@ -125,5 +127,5 @@ public sealed class Resource : IDisposable {
 	}
 
 	public bool Load() => IsVirtual || Database == null || IsLoaded || Database.LoadResource(this);
-	public bool Unload() => IsVirtual || Database == null || IsLoaded && Database.UnloadResource(this);
+	public bool Unload() => IsVirtual || Database == null || (IsLoaded && Database.UnloadResource(this));
 }
