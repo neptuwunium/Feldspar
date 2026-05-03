@@ -1,0 +1,46 @@
+From gust_tools/gust_enc.json:
+	1. Locate the function call that uses literal value 0x3B9A73C9 (SEED_CONSTANT).
+	2. At the beginning of that function you get length[] and table[] array values (lengths are usually 1Dh, 13h, 0Bh).
+	3. Find the first call to a function that uses parameters 800h and 100h and look for another literal. That's main[0].
+	4. Find the next literal being used after this call. That's main[1].
+	5. Go further down and look for 2 literals, one of which is half the value of the first and is prime. That's fence.
+	6. Finally look for a call near the end where 80h is used as parameter. The other literal there is main[2].
+	Note: All of the seeds are prime numbers so if you have a number that is not prime, then it's not a seed.
+
+Feldspar Notes:
+	SEED_CONSTANT will typically have a signature such as:
+		c7 ?? c9 73 9a 3b
+		MOV DWORD [REG1], 0x3b9a73c9
+	There will be two main, table and length sets. One for files, and one for save files.
+
+	The fence value is usually an imul followed by sub and cmp. imul will be 2x the cmp value.
+
+	I don't know if save files are version 1, 2 or 3 or function the same way
+	but here are ryza 3 (non-dx) save encryption constants:
+		length[0] = 0x07;
+		length[1] = 0x0d;
+		length[2] = 0x17;
+		table[0] = 0x9f73;
+		table[1] = 0xaee3;
+		table[2] = 0x394d;
+		main[0] = 0x3745d;
+		main[1] = 0xd5c1;
+		main[2] = 0x3745d; // actually 0, just reuses main[0] for the second scramble
+		fence = 0x6d9;
+		start_scramble_len = 0x800; // this is 0x80 in .e files
+		end_scramble_len = 0x800; // this is 0x100 in .e files
+
+	When the function is NOT inlined, as seen in Yumia, the signature is typically:
+		8d ?? c9 73 9a 3b ?? 01
+		LEA REG1, [REG2 + 0x3b9a73c9]
+		MOV DWORD [REG3], REG1
+	Immediately followed by the table lengths.
+
+	In the calling function:
+		1. the if comparison in the immediate upper branch is the last seed.
+		2. the first function call will be the initializer for the random context.
+			REG1+0x8, REG+0xC, REG1+0x10 are table values
+			REG1+0x14... are seed values *except the last value* which is used as a loop comparison.
+
+A note about PAK encryption:
+	the decryption function will very likely have the folowing signature: 83 e0 1f 48 ff c1
