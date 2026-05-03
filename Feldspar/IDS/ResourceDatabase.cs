@@ -18,7 +18,7 @@ namespace Feldspar.IDS;
 
 public sealed class ResourceDatabase : IDisposable {
 	// todo: move this to a file
-	private static readonly string[] KTGL_EXTRA_MOUNTS_BASE = ["@../../shader_@"];
+	private static readonly string[] KTGL_EXTRA_MOUNTS_BASE = ["@../../shader_@", "../../shader"];
 
 	public ResourceDatabase(string path, ResourceDatabaseManager manager) {
 		BasePath = Path.GetDirectoryName(path) ?? throw new InvalidOperationException();
@@ -170,15 +170,15 @@ public sealed class ResourceDatabase : IDisposable {
 
 		return;
 
-		bool TryMountExternal(KTID nameId, string basePath) {
+		bool TryMountExternal(KTID nameId, KTID targetId, string basePath) {
 			var name = $"0x{nameId.Value:x08}.file";
 			var shortId = (nameId.Value & 0xff).ToString("x2");
 			foreach (var looseDir in loosePaths) {
-				if (Mount(nameId, Path.Combine(basePath, looseDir, name), force)) {
+				if (Mount(targetId, Path.Combine(basePath, looseDir, name), force)) {
 					return true;
 				}
 
-				if (Mount(nameId, Path.Combine(basePath, looseDir, shortId, name), force)) {
+				if (Mount(targetId, Path.Combine(basePath, looseDir, shortId, name), force)) {
 					return true;
 				}
 			}
@@ -187,46 +187,42 @@ public sealed class ResourceDatabase : IDisposable {
 		}
 
 		void MountExternal(Resource resource, string basePath) {
-			if (TryMountExternal(resource.Header.NameId, basePath)) {
+			if (TryMountExternal(resource.Header.NameId, resource.Header.NameId, basePath)) {
 				return;
 			}
 
-			// this is what Nioh3 does. sub_141563740 in demo.
-			// G1SFile
-			if (resource.Header.TypeId != 0x7bcd279f || resource.Header.MemorySize != 0) {
-				return;
-			}
+			if (resource.Header.MemorySize == 0) {
+				// this is what Nioh3 does. sub_141563740 in demo.
+				// G1SFile
+				var isG1S = resource.Header.TypeId == 0x7bcd279f;
+				if (MountRemappedResource(resource, basePath, isG1S ? ResourceRemapping.Shader : ResourceRemapping.Resource)) {
+					return;
+				}
 
-			var nameId = RemapResourceName(resource.Header.NameId);
-			if (nameId == resource.Header.NameId) {
-				return;
-			}
+				if (!isG1S) {
+					return;
+				}
 
-			if (TryMountExternal(resource.Header.NameId, basePath)) {
-				return;
-			}
-
-			foreach (var looseDir in loosePaths) {
-				if (Mount(nameId, Path.Combine(basePath, looseDir, "PB2Unknown.file"), force)) {
-					break;
+				foreach (var looseDir in loosePaths) {
+					if (Mount(resource.Header.NameId, Path.Combine(basePath, looseDir, "PB2Unknown.file"), force)) {
+						break;
+					}
 				}
 			}
 		}
-	}
 
-	// what nioh3 does, see sub_140c84838 in demo
-	// todo: move this to a file that isn't hardcoded
-	private static KTID RemapResourceName(KTID nameId) =>
-		nameId.Value switch {
-			0x69b8cb0f => 0xf0608e3a,
-			0x23625bf7 => 0xac9ed13e,
-			0xaa99d41b => 0x460b392a,
-			0x347300be => 0x9c481f79,
-			0x58c2d622 => 0xf0ffd1c1,
-			0xf72fa41a => 0x8f6c9fb9,
-			0x154dbb99 or 0xc32701c9 or 0x3dc29f92 or 0x22b4c449 or 0x7dbd25cf or 0xe3c5d0a1 or 0x450a09c7 or 0x7ab3a93c => 0xec7b0597,
-			_ => nameId,
-		};
+		bool MountRemappedResource(Resource resource, string basePath, Dictionary<KTID, KTID> remap) {
+			if (!remap.TryGetValue(resource.Header.NameId, out var nameId)) {
+				return false;
+			}
+
+			if (nameId == resource.Header.NameId || nameId == default) {
+				return false;
+			}
+
+			return TryMountExternal(nameId, resource.Header.NameId, basePath);
+		}
+	}
 
 	public KTID GetResourcePackage(Resource resource) {
 		var address = resource.AddressInfo;

@@ -3,13 +3,14 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Diagnostics;
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 
 namespace Feldspar.IDS.Format;
 
 public static class KTIDRegistry {
+	public const char SEPARATOR = '⇒';
+
 	static KTIDRegistry() {
 		ParseTypeFile("Resources/TypeInfo/Type.ktid");
 		ParseTypeFile("Resources/TypeInfo/Property.ktid");
@@ -49,20 +50,15 @@ public static class KTIDRegistry {
 			}
 
 			var chars = line.AsSpan();
-			if (chars is not ['@', '0', 'x', ..]) {
+			if (chars is not ['@', '0', 'x', _, _, _, _, _, _, _, _, SEPARATOR, ..]) {
 				continue;
 			}
 
-			var index = chars.IndexOf('⇒');
-			if (index < 0) {
+			if (!KTID.TryParseStrict(chars[..11], out var id)) {
 				continue;
 			}
 
-			if (!uint.TryParse(chars[3..index], NumberStyles.HexNumber, null, out var id)) {
-				continue;
-			}
-
-			var name = chars[(index + 1)..];
+			var name = chars[12..];
 
 			var text = new string(name);
 			if (Lookup.TryGetValue(id, out var existing)) {

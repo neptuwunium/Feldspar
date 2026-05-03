@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
+using System.Globalization;
 using System.Text;
 using System.Text.Json.Serialization;
 using Feldspar.Json;
@@ -33,12 +34,18 @@ public partial struct KTID {
 			return hash;
 		}
 
+		return CreateKTID(text.AsSpan(), text);
+	}
+
+	public static KTID CreateKTID(ReadOnlySpan<char> text, string? value = null) {
 		var stack = (stackalloc byte[Encoding.UTF8.GetByteCount(text)]);
 		var n = Encoding.UTF8.GetBytes(text, stack);
 		var id = CreateKTID(stack[1..n], stack[0] * 0x1f);
-		KTIDRegistry.Register(text, id);
+		KTIDRegistry.Register(value ?? new string(text), id);
 		return id;
 	}
+
+	public static KTID CreateKTID(ReadOnlySpan<byte> text) => text.Length < 1 ? default : CreateKTID(text[1..], text[0] * 0x1f);
 
 	public static KTID CreateKTID(ReadOnlySpan<byte> text, int hash) {
 		var inc = 0x1f;
@@ -73,8 +80,55 @@ public partial struct KTID {
 		return hash;
 	}
 
+	public static bool TryParseStrict(ReadOnlySpan<char> chars, out KTID value) {
+		value = default;
+
+		if (chars.Length == 0) {
+			return true;
+		}
+
+		if (chars.Length != 11) {
+			return false;
+		}
+
+		if (chars is not ['@', '0', 'x', ..]) {
+			return false;
+		}
+
+		if (!uint.TryParse(chars[3..11], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var hash)) {
+			return false;
+		}
+
+		value = hash;
+		return true;
+	}
+
+	public static bool TryParse(ReadOnlySpan<char> chars, out KTID value) {
+		value = default;
+
+		if (chars.Length == 0) {
+			return true;
+		}
+
+		if (chars is not ['@', '0', 'x', ..] || chars.Length < 11) {
+			value = CreateKTID(chars);
+			return true;
+		}
+
+		if (!uint.TryParse(chars[3..11], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var hash)) {
+			return false;
+		}
+
+		value = hash;
+		return true;
+	}
+
+	public static bool TryParse(string text, out KTID value) => TryParse(text.AsSpan(), out value);
+
+	public static KTID Parse(string text) => !TryParse(text.AsSpan(), out var value) ? throw new FormatException("invalid ktid format") : value;
+
 	public override string ToString() => !IsValid ? "null" : KTIDRegistry.Lookup.TryGetValue(Value, out var text) ? text : $"@0x{Value:x08}";
-	public static implicit operator KTID(string value) => new(value);
+	public static implicit operator KTID(string value) => TryParse(value, out var ktid) ? ktid : default;
 
 	public bool IsValid => Value != 0;
 }
