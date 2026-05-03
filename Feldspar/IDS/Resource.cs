@@ -3,8 +3,11 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Feldspar.IDS.Format;
 using Feldspar.IDS.Format.OBJ;
 using Feldspar.IDS.Format.RDB;
+using Feldspar.KTGL;
 using Pluto.IO.Binary;
 
 namespace Feldspar.IDS;
@@ -21,7 +24,7 @@ public sealed class Resource : IDisposable {
 
 		var addressBuffer = (stackalloc byte[checked((int) Header.DiskSize)]);
 		reader.Read(addressBuffer);
-		var info = RDBAddressInfo.TryParse(addressBuffer, out var addressInfo) ? addressInfo : new RDBAddressInfo();
+		var info = RDBAddressInfo.TryParse(addressBuffer, out var addressInfo) ? addressInfo : RDBAddressInfo.Default;
 		info.RDBPosition = start;
 		AddressInfo = info;
 
@@ -29,21 +32,46 @@ public sealed class Resource : IDisposable {
 		reader.Align();
 	}
 
-	public ResourceDatabase Database { get; }
+	public Resource(KTID typeId, KTID nameId, RentedArray<byte> buffer, KTID resourceId = default) {
+		Header = new RDBIndexHeader {
+			Header = new ResourceHeader(ResourceMagic.ResourceDatabaseIndex, new ResourceVersion("0000"u8)),
+			Size = buffer.Length + Unsafe.SizeOf<RDBIndexHeader>(),
+			DiskSize = buffer.Length,
+			MemorySize = buffer.Length,
+			Info = RDBResourceInfo.Virtual,
+			TypeId = typeId,
+			NameId = nameId,
+			ResourceId = resourceId,
+		};
+		AddressInfo = RDBAddressInfo.Default;
+		Buffer = buffer;
+	}
+
+	public ResourceDatabase? Database { get; }
 	public RDBIndexHeader Header { get; set; }
 	public RDBAddressInfo AddressInfo { get; set; }
 	public ResourceObjectData ObjectData { get; set; } = ResourceObjectData.Empty;
 	public ResourceObject? Object { get; set; }
 	public RentedArray<byte> Buffer { get; set; } = RentedArray<byte>.Empty;
 	public bool IsLoaded => Buffer.Length > 0 || Header.MemorySize == 0;
+	public bool IsVirtual => Header.Info.IsVirtual;
 
 	public void Dispose() {
 		Destroy();
 		ObjectData.Dispose();
 		Object?.Dispose();
+
+		if (IsVirtual) {
+			Buffer.Dispose();
+			Buffer = RentedArray<byte>.Empty;
+		}
 	}
 
 	public void ReadResourceInfo(StreamBinaryReader reader) {
+		if (IsVirtual) {
+			return;
+		}
+
 		Header = reader.Read<RDBIndexHeader>();
 
 		if (Header.ParamHeaderCount > 0) {
@@ -96,7 +124,6 @@ public sealed class Resource : IDisposable {
 		return Unload();
 	}
 
-	public bool Load() => IsLoaded || Database.LoadResource(this);
-
-	public bool Unload() => IsLoaded && Database.UnloadResource(this);
+	public bool Load() => IsVirtual || Database == null || IsLoaded || Database.LoadResource(this);
+	public bool Unload() => IsVirtual || Database == null || IsLoaded && Database.UnloadResource(this);
 }
